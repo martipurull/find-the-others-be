@@ -1,8 +1,9 @@
 import mongoose from 'mongoose'
+import { IGig } from '../../types'
 
 const { Schema, model } = mongoose
 
-const GigModel = new Schema({
+const GigModel = new Schema<IGig>({
     title: { type: String, required: true },
     project: { type: Schema.Types.ObjectId, required: true },
     bands: [{ type: Schema.Types.ObjectId, ref: 'Band' }],
