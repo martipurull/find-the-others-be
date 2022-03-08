@@ -13,7 +13,7 @@ export interface IUser extends Document {
     connections: Types.ObjectId[],
     connectionsSent: Types.ObjectId[],
     connectionsReceived: Types.ObjectId[],
-    applications: Types.ObjectId[],
+    applications: Types.ObjectId[]
 }
 
 export interface IProject extends Document {
@@ -40,7 +40,7 @@ export interface IProject extends Document {
         filename: string,
         notes: [{
             sender: Types.ObjectId,
-            text: string,
+            text: string
         }]
     }]
 }
@@ -58,6 +58,32 @@ export interface IPost extends Document {
 export interface IComment extends Document {
     sender: Types.ObjectId,
     text: string,
-    likes: Types.ObjectId[],
+    likes: Types.ObjectId[]
 }
 
+export interface IGig extends Document {
+    title: string,
+    project: Types.ObjectId,
+    bands: Types.ObjectId[],
+    description: string,
+    hours: number,
+    instrument: string,
+    specifics: string,
+    applicants: Types.ObjectId[]
+}
+
+export interface IBand extends Document {
+    name: string,
+    members: Types.ObjectId[],
+    releasedTracks: IReleasedTrack[],
+    projects: Types.ObjectId[],
+    blurb: string,
+    bio: string,
+    avatar: string,
+    filename: string
+}
+
+export interface IReleasedTrack extends Document {
+    track: string,
+    filename: string
+}
