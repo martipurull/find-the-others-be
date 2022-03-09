@@ -4,6 +4,7 @@ import { provideTokens } from '../../auth/functions'
 import { cloudinary, parser } from '../utils/cloudinary'
 import passport from 'passport'
 import UserModel from './schema'
+import { verifyJWTAndRegenerate } from '../../auth/functions'
 
 const userRouter = express.Router()
 
@@ -39,6 +40,18 @@ userRouter.post('/login', async (req, res, next) => {
         } else {
             next(createHttpError(401, 'Invalid credentials.'))
         }
+    } catch (error) {
+        next(error)
+    }
+})
+
+userRouter.post('/refreshToken', async (req, res, next) => {
+    try {
+        const { currentRefreshJWT } = req.body
+        const { accessJWT, refreshJWT } = await verifyJWTAndRegenerate(currentRefreshJWT)
+        res.cookie('accessToken', accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        res.cookie('refreshToken', refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        res.send('Tokens sent.')
     } catch (error) {
         next(error)
     }
