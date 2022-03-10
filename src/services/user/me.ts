@@ -3,7 +3,6 @@ import createHttpError from 'http-errors'
 import { cloudinary, parser } from '../utils/cloudinary'
 import UserModel from './schema'
 import JWTAuth from '../../middleware/JWTAuth'
-import accessRouter from './access'
 
 const meRouter = Router()
 

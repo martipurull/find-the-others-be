@@ -26,13 +26,18 @@ export interface IUserModel extends Model<IUser> {
 
 export interface IReqUser {
     tokens: {
-        accessJWT: strin
+        accessJWT: string
         refreshJWT: string
     }
 }
 
 export interface IJWTPayload {
-    _id: string,
+    _id: string
+    email: string
+}
+
+export interface IInvitee {
+    name: string
     email: string
 }
 

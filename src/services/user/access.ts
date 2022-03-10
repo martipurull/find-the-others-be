@@ -8,6 +8,7 @@ import createHttpError from 'http-errors'
 
 const accessRouter = Router()
 
+process.env.TS_NODE_DEV && require('dotenv').config()
 const { NODE_ENV, FE_URL } = process.env
 
 accessRouter.post('/register', parser.single('userAvatar'), async (req: Request, res: Response, next: NextFunction) => {
