@@ -29,6 +29,7 @@ export interface IReqUser {
         accessJWT: string
         refreshJWT: string
     }
+    facebookId?: string
 }
 
 export interface IJWTPayload {

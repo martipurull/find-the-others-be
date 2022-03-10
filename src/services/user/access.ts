@@ -62,9 +62,9 @@ accessRouter.get('/facebookLogin', passport.authenticate('facebook', { scope: 'e
 
 accessRouter.get('/facebookRedirect', passport.authenticate('facebook', { failureRedirect: `${FE_URL}/register` }), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.cookie('accessToken', req.user.tokens.accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
-        res.cookie('refreshToken', req.user.tokens.refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
-        res.cookie('facebookId', req.user.facebookId, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        res.cookie('accessToken', req.user!.tokens.accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        res.cookie('refreshToken', req.user!.tokens.refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        res.cookie('facebookId', req.user!.facebookId, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
         res.redirect(FE_URL!)
     } catch (error) {
         next(error)
@@ -75,8 +75,8 @@ accessRouter.get('/googleLogin', passport.authenticate('google', { scope: ['prof
 
 accessRouter.get('/googleRedirect', passport.authenticate('google'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.cookie('accessToken', req.user.tokens.accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
-        res.cookie('refreshToken', req.user.tokens.refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        res.cookie('accessToken', req.user!.tokens.accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        res.cookie('refreshToken', req.user!.tokens.refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
         res.redirect(FE_URL!)
     } catch (error) {
         next(error)

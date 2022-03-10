@@ -1,4 +1,4 @@
-import { IJWTPayload } from "./types";
+import { IJWTPayload, IReqUser } from "./types";
 
 declare module 'query-to-mongo'
 
