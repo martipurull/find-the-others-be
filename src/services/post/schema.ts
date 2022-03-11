@@ -14,7 +14,6 @@ const PostModel = new Schema<IPost>({
     text: { type: String, required: true },
     image: String,
     filename: String,
-    postedAt: Date,
     likes: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
     comments: { type: [CommentSchema], default: [] }
 }, { timestamps: true, toJSON: { virtuals: true } })

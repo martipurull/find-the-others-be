@@ -18,6 +18,7 @@ export interface IUser extends Document {
     connectionsSent: Types.ObjectId[]
     connectionsReceived: Types.ObjectId[]
     applications: Types.ObjectId[]
+    followedBands: Types.ObjectId[]
 }
 
 export interface IUserModel extends Model<IUser> {
@@ -76,7 +77,6 @@ export interface IPost extends Document {
     text: string
     image?: string
     filename?: string
-    postedAt: date
     likes: Types.ObjectId[]
     comments?: IComment[]
 }
@@ -116,6 +116,7 @@ export interface IBand extends Document {
     bio: string
     avatar: string
     filename: string
+    followedBy: Types.ObjectId[]
 }
 
 export interface IReleasedTrack extends Document {

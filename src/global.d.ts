@@ -1,7 +1,5 @@
 import { IJWTPayload, IReqUser } from "./types";
 
-declare module 'query-to-mongo'
-
 declare module 'express-serve-static-core' {
     interface Request {
         payload?: IJWTPayload

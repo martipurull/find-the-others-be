@@ -20,8 +20,11 @@ const UserSchema = new Schema<IUser>({
     connections: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     connectionsSent: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     connectionsReceived: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    applications: [{ type: Schema.Types.ObjectId, ref: 'Gig' }]
-}, { timestamps: true })
+    applications: [{ type: Schema.Types.ObjectId, ref: 'Gig' }],
+    followedBands: [{ type: Schema.Types.ObjectId, ref: 'Band' }]
+}, { timestamps: true, toJSON: { virtuals: true } })
+
+UserSchema.virtual('noOfConnections').get(function (this: IUser) { return this.connections.length })
 
 UserSchema.pre('save', async function (next) {
     const newUser = this

@@ -21,7 +21,7 @@ const GigModel = new Schema<IGig>({
             notes: String
         }
     }]
-}, { timestamps: true })
+}, { timestamps: true, toJSON: { virtuals: true } })
 
 GigModel.virtual('noOfApplications').get(function (this: IGig) { return this.applications.length })
 

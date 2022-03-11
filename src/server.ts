@@ -7,6 +7,7 @@ import userRouter from './services/user'
 import facebookStrategy from './auth/facebookOAuth'
 import googleStrategy from './auth/googleOAuth'
 import gigRouter from './services/gig'
+import postRouter from './services/post'
 
 const server = express()
 const whitelist = ['http://localhost:3000']
@@ -21,8 +22,9 @@ server.use(cookieParser())
 server.use(passport.initialize())
 
 // routers go here
-server.use('user', userRouter)
-server.use('gigs', gigRouter)
+server.use('/user', userRouter)
+server.use('/gigs', gigRouter)
+server.use('/posts', postRouter)
 
 
 
