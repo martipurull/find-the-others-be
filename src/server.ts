@@ -6,6 +6,7 @@ import { errorHandlers } from './middleware/errorHandler'
 import userRouter from './services/user'
 import facebookStrategy from './auth/facebookOAuth'
 import googleStrategy from './auth/googleOAuth'
+import gigRouter from './services/gig'
 
 const server = express()
 const whitelist = ['http://localhost:3000']
@@ -21,6 +22,7 @@ server.use(passport.initialize())
 
 // routers go here
 server.use('user', userRouter)
+server.use('gigs', gigRouter)
 
 
 

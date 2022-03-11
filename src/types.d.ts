@@ -89,13 +89,22 @@ export interface IComment extends Document {
 
 export interface IGig extends Document {
     title: string
+    postedBy: Types.ObjectId
     project: Types.ObjectId
     bands: Types.ObjectId[]
     description: string
+    genre: string
     hours: number
     instrument: string
     specifics: string
-    applicants: Types.ObjectId[]
+    applications: [{
+        applicant: Types.ObjectId
+        submission: {
+            audioFile: string
+            filename: string
+            notes: string
+        }
+    }]
 }
 
 export interface IBand extends Document {

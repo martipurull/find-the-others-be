@@ -55,6 +55,7 @@ meRouter.delete('/me', JWTAuth, async (req: Request, res: Response, next: NextFu
             if (deletedUser.filename) {
                 await cloudinary.uploader.destroy(deletedUser.filename)
             }
+            res.status(204).send()
         } else {
             next(createHttpError(400, 'Invalid request.'))
         }
