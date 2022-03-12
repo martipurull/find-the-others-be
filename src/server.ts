@@ -8,6 +8,7 @@ import facebookStrategy from './auth/facebookOAuth'
 import googleStrategy from './auth/googleOAuth'
 import gigRouter from './services/gig'
 import postRouter from './services/post'
+import bandRouter from './services/band'
 
 const server = express()
 const whitelist = ['http://localhost:3000']
@@ -25,6 +26,7 @@ server.use(passport.initialize())
 server.use('/user', userRouter)
 server.use('/gigs', gigRouter)
 server.use('/posts', postRouter)
+server.use('/bands', bandRouter)
 
 
 
