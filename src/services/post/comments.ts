@@ -10,6 +10,7 @@ const commentsRouter = Router({ mergeParams: true })
 commentsRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const commenter = await UserModel.findById(req.payload?._id)
+        if (!commenter) return next(createHttpError(404, `User with id ${req.payload?._id} could not be found.`))
         const comment = { sender: commenter, text: req.body }
         const postWithComment = await PostModel.findByIdAndUpdate(req.params.postId, { $push: { comments: comment } }, { new: true })
         if (!postWithComment) return next(createHttpError(404, `Post with id ${req.params.postId} does not exist.`))
@@ -36,6 +37,8 @@ commentsRouter.put('/:commentId', JWTAuth, async (req: Request, res: Response, n
             const commentIndex = post.comments?.findIndex(c => c._id.toString() === req.params.commentId)
             if (commentIndex && commentIndex !== -1) {
                 post.comments![commentIndex] = { ...post.comments![commentIndex].toObject(), ...req.body }
+                await post.save()
+                res.send(post)
             } else {
                 next(createHttpError(404, `Comment cannot be found.`))
             }

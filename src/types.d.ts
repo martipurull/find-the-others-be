@@ -54,18 +54,22 @@ export interface IProject extends Document {
     filename: string
     bands: Types.ObjectId[]
     projectPosts: Types.ObjectId[]
-    tasks: [{
-        status: string
-        musician: Types.ObjectId
-        title: string
-        description: string
-        audioFile: string
-        filename: string
-        notes: [{
-            sender: Types.ObjectId
-            text: string
-        }]
-    }]
+    tasks: Types.ObjectId[]
+}
+
+export interface ITask extends Document {
+    status: string
+    musician: Types.ObjectId
+    title: string
+    description: string
+    audioFile: string
+    filename: string
+    notes?: INote[]
+}
+
+export interface INote extends Document {
+    sender: Types.ObjectId
+    text: string
 }
 
 export interface IPost extends Document {

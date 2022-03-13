@@ -4,7 +4,7 @@ import JWTAuth from '../../middleware/JWTAuth'
 import UserModel from '../user/schema'
 import projectPostRouter from './projectPosts'
 import ProjectModel from './schema'
-import taskRouter from './tasks'
+import taskRouter from './task'
 
 const projectRouter = Router()
 
