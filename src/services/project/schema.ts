@@ -12,12 +12,7 @@ const ProjectModel = new Schema<IProject>({
     trackToDate: String,
     filename: String,
     bands: [{ type: Schema.Types.ObjectId, ref: 'Band' }],
-    projectPosts: [{
-        sender: { type: Schema.Types.ObjectId, ref: 'User' },
-        text: { type: String, required: true },
-        image: String,
-        filename: String
-    }],
+    projectPosts: [{ type: Schema.Types.ObjectId, ref: 'Post' }],
     tasks: [{
         status: { type: String, required: true, enum: ['todo', 'doing', 'done'] },
         musician: { type: Schema.Types.ObjectId, ref: 'User' },

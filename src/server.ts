@@ -9,6 +9,7 @@ import googleStrategy from './auth/googleOAuth'
 import gigRouter from './services/gig'
 import postRouter from './services/post'
 import bandRouter from './services/band'
+import projectRouter from './services/project'
 
 const server = express()
 const whitelist = ['http://localhost:3000']
@@ -27,6 +28,7 @@ server.use('/user', userRouter)
 server.use('/gigs', gigRouter)
 server.use('/posts', postRouter)
 server.use('/bands', bandRouter)
+server.use('/projects', projectRouter)
 
 
 

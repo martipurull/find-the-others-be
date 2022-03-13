@@ -53,12 +53,7 @@ export interface IProject extends Document {
     trackToDate: string
     filename: string
     bands: Types.ObjectId[]
-    projectPosts: [{
-        sender: Types.ObjectId
-        text: string
-        image: string
-        filename: string
-    }],
+    projectPosts: Types.ObjectId[]
     tasks: [{
         status: string
         musician: Types.ObjectId
@@ -75,6 +70,8 @@ export interface IProject extends Document {
 
 export interface IPost extends Document {
     sender: Types.ObjectId
+    isForProject: boolean
+    postProject: Types.ObjectId
     text: string
     image?: string
     filename?: string
