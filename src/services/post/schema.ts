@@ -11,7 +11,7 @@ const CommentSchema = new Schema<IComment>({
 
 const PostModel = new Schema<IPost>({
     sender: { type: Schema.Types.ObjectId, ref: 'User' },
-    isForProject: { type: Boolean, required: true, default: false },
+    isForProject: { type: Boolean, default: false },
     postProject: { type: Schema.Types.ObjectId, ref: 'Project' },
     text: { type: String, required: true },
     image: String,

@@ -2,7 +2,9 @@ import { Router, Request, Response, NextFunction } from 'express'
 import createHttpError from 'http-errors'
 import JWTAuth from '../../middleware/JWTAuth'
 import UserModel from '../user/schema'
+import projectPostRouter from './projectPosts'
 import ProjectModel from './schema'
+import taskRouter from './tasks'
 
 const projectRouter = Router()
 
@@ -76,5 +78,8 @@ projectRouter.delete('/:projectId', JWTAuth, async (req: Request, res: Response,
         (error)
     }
 })
+
+projectRouter.use('/:projectId/posts', projectPostRouter)
+projectRouter.use('/:projectId/tasks', taskRouter)
 
 export default projectRouter
