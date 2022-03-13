@@ -13,6 +13,7 @@ export interface IUser extends Document {
     avatar: string
     filename: string
     memberOf: Types.ObjectId[]
+    bandOffers: Types.ObjectId[]
     projects: Types.ObjectId[]
     connections: Types.ObjectId[]
     connectionsSent: Types.ObjectId[]
@@ -110,6 +111,7 @@ export interface IGig extends Document {
 export interface IBand extends Document {
     name: string
     members: Types.ObjectId[]
+    invitationsSent: Types.ObjectId[]
     releasedTracks: IReleasedTrack[]
     projects: Types.ObjectId[]
     blurb: string

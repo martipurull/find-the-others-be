@@ -16,6 +16,7 @@ const UserSchema = new Schema<IUser>({
     avatar: { type: String },
     filename: { type: String },
     memberOf: [{ type: Schema.Types.ObjectId, ref: 'Band' }],
+    bandOffers: [{ type: Schema.Types.ObjectId, ref: 'Band' }],
     projects: [{ type: Schema.Types.ObjectId, ref: 'Project' }],
     connections: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     connectionsSent: [{ type: Schema.Types.ObjectId, ref: 'User' }],

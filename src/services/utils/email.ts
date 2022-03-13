@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail'
-import { IGig, IInvitee, IProject, IUser } from '../../types'
+import { IBand, IGig, IInvitee, IProject, IUser } from '../../types'
 import striptags from 'striptags'
 import createHttpError from 'http-errors'
 import UserModel from '../user/schema'
@@ -7,6 +7,8 @@ import UserModel from '../user/schema'
 process.env.TS_NODE_DEV && require('dotenv').config()
 
 sgMail.setApiKey(process.env.SENDGRID_KEY!)
+
+//invite to join platform
 
 export const sendInvite = async (sender: IUser, recipient: IInvitee, invitationText: string) => {
     const invite = {
@@ -18,6 +20,8 @@ export const sendInvite = async (sender: IUser, recipient: IInvitee, invitationT
     }
     await sgMail.send(invite)
 }
+
+//gig offers
 
 export const sendGigConfirmation = async (sender: IUser, recipient: IUser, gig: IGig, project: IProject) => {
     const confirmation = {
@@ -61,4 +65,38 @@ export const sendGigRejections = async (sender: IUser, rejectedIds: string[], gi
         }
     }
     return { contactedRejects, unableToContactRejects }
+}
+
+//band invites
+
+export const sendBandInvite = async (sender: IUser, recipient: IUser, band: IBand) => {
+    const invite = {
+        to: sender.email,
+        from: recipient.email,
+        subject: `${band.name} would like you to join them.`,
+        text: `${sender.firstName} ${sender.lastName} thinks you should be in ${band.name} too.`
+    }
+    await sgMail.send(invite)
+}
+
+export const withdrawBandInvite = async (sender: IUser, recipient: IUser, band: IBand) => {
+    const withdrawal = {
+        to: sender.email,
+        from: recipient.email,
+        subject: `${band.name} have withdrawn their invitation.`,
+        text: `${sender.firstName} ${sender.lastName} has withdrawn the invitation for you to join ${band.name}.`
+    }
+    await sgMail.send(withdrawal)
+}
+
+export const notifyBandMembers = async (sender: IUser, recipients: IUser[], band: IBand, text: string) => {
+    for (const recipient of recipients) {
+        const message = {
+            to: sender.email,
+            from: recipient.email,
+            subject: `${sender.firstName} ${sender.lastName} has responded to your invitation.`,
+            text
+        }
+        await sgMail.send(message)
+    }
 }

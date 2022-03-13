@@ -11,6 +11,7 @@ const ReleasedTrack = new Schema<IReleasedTrack>({
 const BandModel = new Schema<IBand>({
     name: { type: String, required: true },
     members: [{ types: Schema.Types.ObjectId, ref: 'User' }],
+    invitationsSent: [{ types: Schema.Types.ObjectId, ref: 'User' }],
     releasedTracks: [ReleasedTrack],
     projects: [{ type: Schema.Types.ObjectId, ref: 'Project' }],
     blurb: { type: String, required: true },
