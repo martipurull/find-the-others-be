@@ -29,7 +29,7 @@ export const provideTokens = async (user: IUser) => {
         await user.save()
         return { accessJWT, refreshJWT }
     } catch (error) {
-        throw createHttpError(500, error)
+        throw createHttpError(500, `The following error occurred: ${error}`)
     }
 }
 

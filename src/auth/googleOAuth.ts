@@ -1,3 +1,4 @@
+import createHttpError from 'http-errors'
 import passport from 'passport'
 import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20'
 import UserModel from '../services/user/schema'
@@ -30,7 +31,7 @@ const googleStrategy = new Strategy({
                 passportNext(null, { tokens })
             }
         } catch (error) {
-            passportNext(error)
+            throw createHttpError(`The following error ocurred: ${error}`)
         }
     })
 

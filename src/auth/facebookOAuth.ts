@@ -1,3 +1,4 @@
+import createHttpError from 'http-errors'
 import passport from 'passport'
 import FacebookStrategy from 'passport-facebook'
 import UserModel from '../services/user/schema'
@@ -31,7 +32,7 @@ const facebookStrategy = new FacebookStrategy.Strategy({
                 passportNext(null, { tokens, facebookId: newUser.facebookId })
             }
         } catch (error) {
-            passportNext(error)
+            throw createHttpError(`The following error ocurred: ${error}`)
         }
     })
 
