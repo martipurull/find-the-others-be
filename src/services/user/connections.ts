@@ -1,12 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import createHttpError from 'http-errors'
 import UserModel from './schema'
+import JWTAuth from '../../middleware/JWTAuth'
 
 const connectionRouter = Router({ mergeParams: true })
 
-connectionRouter.post('/send-connection', async (req: Request, res: Response, next: NextFunction) => {
+connectionRouter.post('/send-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { connectionId } = req.params
+        const connectionId = req.params.connectionId
         const userId = req.payload?._id
         if (connectionId === userId) return next(createHttpError(400, 'You cannot connect with yourself.'))
         const connectionRecipient = await UserModel.findByIdAndUpdate(connectionId, { $push: { connectionsReceived: userId } })
@@ -19,7 +20,7 @@ connectionRouter.post('/send-connection', async (req: Request, res: Response, ne
     }
 })
 
-connectionRouter.post('/withdraw-connection', async (req: Request, res: Response, next: NextFunction) => {
+connectionRouter.post('/withdraw-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { connectionId } = req.params
         const userId = req.payload?._id
@@ -34,7 +35,7 @@ connectionRouter.post('/withdraw-connection', async (req: Request, res: Response
     }
 })
 
-connectionRouter.post('/accept-connection', async (req: Request, res: Response, next: NextFunction) => {
+connectionRouter.post('/accept-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { connectionId } = req.params
         const userId = req.payload?._id
@@ -48,7 +49,7 @@ connectionRouter.post('/accept-connection', async (req: Request, res: Response, 
     }
 })
 
-connectionRouter.post('/decline-connection', async (req: Request, res: Response, next: NextFunction) => {
+connectionRouter.post('/decline-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { connectionId } = req.params
         const userId = req.payload?._id
@@ -62,7 +63,7 @@ connectionRouter.post('/decline-connection', async (req: Request, res: Response,
     }
 })
 
-connectionRouter.post('/remove-connection', async (req: Request, res: Response, next: NextFunction) => {
+connectionRouter.post('/remove-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { connectionId } = req.params
         const userId = req.payload?._id

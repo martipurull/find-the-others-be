@@ -6,7 +6,7 @@ import projectPostRouter from './projectPosts'
 import ProjectModel from './schema'
 import taskRouter from './task'
 
-const projectRouter = Router()
+const projectRouter = Router({ mergeParams: true })
 
 projectRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -25,7 +25,7 @@ projectRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFu
     try {
         const loggedInUserId = req.payload?._id
         if (!loggedInUserId) return next(createHttpError(404, `No logged in user was found.`))
-        const userProjects = await ProjectModel.find({ $in: { members: loggedInUserId } })
+        const userProjects = await ProjectModel.find({ $in: { members: loggedInUserId } }).populate('tasks', ['title', 'description'])
         if (!userProjects) return next(createHttpError(404, `User with id ${loggedInUserId} has no projects.`))
         res.send(userProjects)
     } catch (error) {
@@ -35,7 +35,7 @@ projectRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFu
 
 projectRouter.get('/:projectId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const project = await ProjectModel.findById(req.params.projectId)
+        const project = await ProjectModel.findById(req.params.projectId).populate('tasks')
         if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} was not found.`))
         res.send(project)
     } catch (error) {

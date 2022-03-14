@@ -20,7 +20,7 @@ postRouter.post('/', JWTAuth, parser.single('postImage'), async (req: Request, r
             const project = await ProjectModel.findById(req.params.projectId)
             const newPost = await new PostModel({
                 ...req.body,
-                sender,
+                sender: sender._id,
                 isForProject: true,
                 postProject: project,
                 image: req.file?.path || '',
@@ -30,7 +30,7 @@ postRouter.post('/', JWTAuth, parser.single('postImage'), async (req: Request, r
             if (!projectWithNewPost) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
             res.status(201).send(projectWithNewPost)
         } else {
-            const newPost = await new PostModel({ sender, image: req.file?.path || '', filename: req.file?.filename || '', ...req.body }).save()
+            const newPost = await new PostModel({ sender: sender._id, image: req.file?.path || '', filename: req.file?.filename || '', ...req.body }).save()
             res.status(201).send(newPost)
         }
     } catch (error) {
@@ -55,7 +55,8 @@ postRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
                 $or: [
                     { sender: { $in: loggedInUser.connections } },
                     { sender: { $in: followedBandsMembers } },
-                    { sender: { $in: followedProjectsMembers } }
+                    { sender: { $in: followedProjectsMembers } },
+                    { sender: loggedInUser }
                 ]
             })
                 .sort({ createdAt: -1 })
@@ -83,9 +84,6 @@ postRouter.put('/:postId', JWTAuth, parser.single('postImage'), async (req: Requ
                 if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
                 const editedPost = await PostModel.findByIdAndUpdate(req.params.postId, {
                     ...req.body,
-                    sender,
-                    isForProject: true,
-                    postProject: project,
                     image: req.file?.path || oldPost.image,
                     filename: req.file?.filename || oldPost.filename
                 }, { new: true })

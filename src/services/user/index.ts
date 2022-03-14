@@ -12,7 +12,7 @@ userRouter.use('/access', accessRouter)
 userRouter.use('/me', meRouter)
 userRouter.use('/connect/:connectionId', connectionRouter)
 
-userRouter.get('/:userId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+userRouter.get('/find/:userId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = await UserModel.findById(req.params.userId)
         if (!user) return next(createHttpError(404, `User with id ${req.params.userId} cannot be found`))

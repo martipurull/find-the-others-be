@@ -52,7 +52,7 @@ accessRouter.post('/refreshToken', async (req: Request, res: Response, next: Nex
         const { accessJWT, refreshJWT } = await verifyJWTAndRegenerate(currentRefreshJWT)
         res.cookie('accessToken', accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
         res.cookie('refreshToken', refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
-        res.send('Tokens sent.')
+        res.send('New tokens sent.')
     } catch (error) {
         next(error)
     }

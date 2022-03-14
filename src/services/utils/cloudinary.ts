@@ -13,10 +13,12 @@ cloudinary.config({
 const cloudinaryStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: 'strive-whatsapp-avatar',
+        folder: 'find-the-others',
+        resource_type: 'auto'
     } as { folder: string }
 });
 
 const parser = multer({ storage: cloudinaryStorage })
+const audioParser = multer({ storage: cloudinaryStorage })
 
 export { parser, cloudinary }

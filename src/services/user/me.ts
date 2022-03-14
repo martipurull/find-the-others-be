@@ -6,7 +6,7 @@ import JWTAuth from '../../middleware/JWTAuth'
 
 const meRouter = Router()
 
-meRouter.get('/me', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+meRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (req.payload) {
             const user = await UserModel.findById(req.payload._id)
@@ -24,7 +24,7 @@ meRouter.get('/me', JWTAuth, async (req: Request, res: Response, next: NextFunct
     }
 })
 
-meRouter.put('/me', JWTAuth, parser.single('userAvatar'), async (req: Request, res: Response, next: NextFunction) => {
+meRouter.put('/', JWTAuth, parser.single('userAvatar'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (req.payload) {
             const oldUser = await UserModel.findById(req.payload._id)
@@ -47,7 +47,7 @@ meRouter.put('/me', JWTAuth, parser.single('userAvatar'), async (req: Request, r
     }
 })
 
-meRouter.delete('/me', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+meRouter.delete('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (req.payload) {
             const deletedUser = await UserModel.findByIdAndDelete(req.payload._id)

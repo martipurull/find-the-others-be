@@ -6,7 +6,7 @@ import UserModel from '../../user/schema'
 import ProjectModel from '../schema'
 import TaskModel from '../task/schema'
 
-const taskRouter = Router()
+const taskRouter = Router({ mergeParams: true })
 
 taskRouter.post('/', JWTAuth, parser.single('audioFile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,6 +17,7 @@ taskRouter.post('/', JWTAuth, parser.single('audioFile'), async (req: Request, r
         })
         const projectWithNewTask = await ProjectModel.findByIdAndUpdate(req.params.projectId, { $push: { tasks: newTask._id } }, { new: true })
         if (!projectWithNewTask) return next(createHttpError(404, `Project with id ${req.params.projectId} was not found.`))
+        newTask.save()
         res.status(201).send(projectWithNewTask)
     } catch (error) {
         (error)
@@ -43,7 +44,7 @@ taskRouter.get('/:taskId', JWTAuth, async (req: Request, res: Response, next: Ne
     }
 })
 
-taskRouter.put('/:taskId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+taskRouter.put('/:taskId', JWTAuth, parser.single('audioFile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
         const isUserTaskMusician = await TaskModel.findOne({ $and: [{ _id: req.params.taskId }, { musician: req.payload?._id }] })
@@ -90,7 +91,7 @@ taskRouter.post('/:taskId/notes', JWTAuth, async (req: Request, res: Response, n
     try {
         const sender = await UserModel.findById(req.payload?._id)
         if (!sender) return next(createHttpError(404, `User with id ${req.payload?._id} could not be found.`))
-        const newNote = { sender, text: req.body }
+        const newNote = { sender, text: req.body.text }
         const taskWithNote = await TaskModel.findByIdAndUpdate(req.params.taskId, { $push: { notes: newNote } }, { new: true })
         if (!taskWithNote) return next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
         res.send(taskWithNote)
@@ -103,7 +104,8 @@ taskRouter.put('/:taskId/notes/:noteId', JWTAuth, async (req: Request, res: Resp
     try {
         const task = await TaskModel.findById(req.params.taskId)
         if (!task) return next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
-        const noteIndex = task.notes?.findIndex(c => c._id.toString() === req.params.noteId)
+        const noteIndex = task.notes?.findIndex(n => n._id.toString() === req.params.noteId)
+        console.log(noteIndex)
         if (noteIndex && noteIndex !== -1) {
             task.notes![noteIndex] = { ...task.notes![noteIndex].toObject(), ...req.body }
             await task.save()
@@ -118,7 +120,7 @@ taskRouter.put('/:taskId/notes/:noteId', JWTAuth, async (req: Request, res: Resp
 
 taskRouter.delete('/:taskId/notes/:noteId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const taskWithoutNote = await TaskModel.findByIdAndUpdate(req.params.taskId, { $pull: { notes: { _id: req.params.noteId } } })
+        const taskWithoutNote = await TaskModel.findByIdAndUpdate(req.params.taskId, { $pull: { notes: { _id: req.params.noteId } } }, { new: true })
         taskWithoutNote ? res.send(taskWithoutNote) : next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
     } catch (error) {
         next(error)
