@@ -102,3 +102,13 @@ export const notifyBandMembers = async (sender: IUser, recipients: IUser[], band
         await sgMail.send(message)
     }
 }
+
+export const notifyRemovedMember = async (sender: IUser, recipient: IUser, band: IBand) => {
+    const removalNotification = {
+        to: recipient.email,
+        from: SENDER_EMAIL as string,
+        subject: `You have left ${band.name}.`,
+        text: `${sender.firstName} ${sender.lastName} has removed you as a member of ${band.name}.`
+    }
+    await sgMail.send(removalNotification)
+}

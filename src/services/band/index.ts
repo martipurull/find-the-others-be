@@ -18,8 +18,10 @@ bandRouter.post('/', JWTAuth, parser.single('bandAvatar'), async (req: Request, 
             ...req.body,
             avatar: req.file?.path || `https://ui-avatars.com/api/?name=${name}`,
             filename: req.file?.filename,
-            members: [user]
+            bandAdmins: [user._id],
+            members: [user._id]
         })
+        await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { memberOf: newBand._id } })
         await newBand.save()
         res.send(newBand)
     } catch (error) {
@@ -38,7 +40,7 @@ bandRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
 
 bandRouter.get('/:bandId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const band = await BandModel.findById(req.params.bandId).populate('members').populate('projects').populate('followedBy')
+        const band = await BandModel.findById(req.params.bandId).populate('members', ['firstName', 'lastName']).populate('projects', 'title').populate('followedBy', '_id')
         if (!band) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
         res.send(band)
     } catch (error) {

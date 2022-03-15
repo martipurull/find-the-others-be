@@ -114,6 +114,7 @@ export interface IApplication extends Document {
 
 export interface IBand extends Document {
     name: string
+    bandAdmins: Types.ObjectId[]
     members: Types.ObjectId[]
     invitationsSent: Types.ObjectId[]
     releasedTracks: IReleasedTrack[]
