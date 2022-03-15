@@ -9,7 +9,7 @@ const bandInviteRouter = Router({ mergeParams: true })
 
 bandInviteRouter.post('/send-invite', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { $in: { bandAdmins: req.payload?._id } }] })
+        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { bandAdmins: req.payload?._id }] })
         if (isUserBandAdmin) {
             const loggedInUser = await UserModel.findById(req.payload?._id)
             if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
@@ -32,7 +32,7 @@ bandInviteRouter.post('/send-invite', JWTAuth, async (req: Request, res: Respons
 
 bandInviteRouter.post('/withdraw-invite', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { $in: { bandAdmins: req.payload?._id } }] })
+        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { bandAdmins: req.payload?._id }] })
         if (isUserBandAdmin) {
             const loggedInUser = await UserModel.findById(req.payload?._id)
             if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
@@ -55,7 +55,7 @@ bandInviteRouter.post('/withdraw-invite', JWTAuth, async (req: Request, res: Res
 
 bandInviteRouter.post('/accept-invite', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const hasUserBeenOffered = await UserModel.findOne({ $and: [{ _id: req.payload?._id }, { $in: { bandOffers: req.params.bandId } }] })
+        const hasUserBeenOffered = await UserModel.findOne({ $and: [{ _id: req.payload?._id }, { bandOffers: req.params.bandId }] })
         if (hasUserBeenOffered) {
             const loggedInUser = await UserModel.findByIdAndUpdate(req.payload?._id, { $pull: { bandOffers: req.params.bandId }, $push: { memberOf: req.params.bandId } })
             if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
@@ -76,7 +76,7 @@ bandInviteRouter.post('/accept-invite', JWTAuth, async (req: Request, res: Respo
 
 bandInviteRouter.post('/decline-invite', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const hasUserBeenOffered = await UserModel.findOne({ $and: [{ _id: req.payload?._id }, { $in: { bandOffers: req.params.bandId } }] })
+        const hasUserBeenOffered = await UserModel.findOne({ $and: [{ _id: req.payload?._id }, { bandOffers: req.params.bandId }] })
         if (hasUserBeenOffered) {
             const loggedInUser = await UserModel.findByIdAndUpdate(req.payload?._id, { $pull: { bandOffers: req.params.bandId } })
             if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
@@ -97,7 +97,7 @@ bandInviteRouter.post('/decline-invite', JWTAuth, async (req: Request, res: Resp
 
 bandInviteRouter.post('/remove-band-member', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { $in: { bandAdmins: req.payload?._id } }] })
+        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { bandAdmins: req.payload?._id }] })
         if (isUserBandAdmin) {
             const loggedInUser = await UserModel.findById(req.payload?._id)
             if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))

@@ -40,7 +40,7 @@ bandRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
 
 bandRouter.get('/:bandId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const band = await BandModel.findById(req.params.bandId).populate('members', ['firstName', 'lastName']).populate('projects', 'title').populate('followedBy', '_id')
+        const band = await BandModel.findById(req.params.bandId).populate('members', ['firstName', 'lastName']).populate('projects', 'title').populate('bandAdmins', ['firstName', 'lastName'])
         if (!band) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
         res.send(band)
     } catch (error) {
@@ -50,15 +50,20 @@ bandRouter.get('/:bandId', JWTAuth, async (req: Request, res: Response, next: Ne
 
 bandRouter.put('/:bandId', JWTAuth, parser.single('bandImage'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const preEditBand = await BandModel.findById(req.params.bandId)
-        if (!preEditBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
-        const body = { ...req.body, avatar: req.file?.path || preEditBand.avatar, filename: req.file?.filename || preEditBand.filename }
-        const editedBand = await BandModel.findByIdAndUpdate(req.params.bandId, body, { new: true })
-        if (!editedBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
-        if (preEditBand.filename && req.file) {
-            await cloudinary.uploader.destroy(preEditBand.filename)
+        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { bandAdmins: req.payload?._id }] })
+        if (isUserBandAdmin) {
+            const preEditBand = await BandModel.findById(req.params.bandId)
+            if (!preEditBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
+            const body = { ...req.body, avatar: req.file?.path || preEditBand.avatar, filename: req.file?.filename || preEditBand.filename }
+            const editedBand = await BandModel.findByIdAndUpdate(req.params.bandId, body, { new: true })
+            if (!editedBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
+            if (preEditBand.filename && req.file) {
+                await cloudinary.uploader.destroy(preEditBand.filename)
+            }
+            res.send(editedBand)
+        } else {
+            next(createHttpError(401, 'You cannot edit bands you are not an admin of.'))
         }
-        res.send(editedBand)
     } catch (error) {
         next(error)
     }
@@ -66,12 +71,18 @@ bandRouter.put('/:bandId', JWTAuth, parser.single('bandImage'), async (req: Requ
 
 bandRouter.delete('/:bandId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const deletedBand = await BandModel.findByIdAndDelete(req.params.bandId)
-        if (!deletedBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
-        if (deletedBand.filename) {
-            await cloudinary.uploader.destroy(deletedBand.filename)
+        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { bandAdmins: req.payload?._id }] })
+        if (isUserBandAdmin) {
+            const deletedBand = await BandModel.findByIdAndDelete(req.params.bandId)
+            if (!deletedBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
+            if (deletedBand.filename) {
+                await cloudinary.uploader.destroy(deletedBand.filename)
+            }
+            deletedBand.members.map(async member => await UserModel.findByIdAndUpdate(member._id, { $pull: { memberOf: req.params.bandId } }))
+            res.status(204).send()
+        } else {
+            next(createHttpError(401, 'You cannot delete bands you are not an admin of.'))
         }
-        res.status(204).send()
     } catch (error) {
         next(error)
     }
