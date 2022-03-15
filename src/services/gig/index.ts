@@ -31,7 +31,11 @@ gigRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFuncti
 
 gigRouter.get('/:gigId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const gig = await GigModel.findById(req.params.gigId).populate('project', ['title', '_id']).populate('bands', ['name', '_id']).populate('postedBy', ['firstName', 'lastName', '_id'])
+        const gig = await GigModel.findById(req.params.gigId)
+            .populate('project', ['title', '_id'])
+            .populate('bands', ['name', '_id'])
+            .populate('postedBy', ['firstName', 'lastName', '_id'])
+            .populate({ path: 'applications', populate: { path: 'applicant', select: ['firstName', 'lastName'] } })
         if (!gig) return next(createHttpError(404, `Gig with id ${req.params.gigId} could not be found`))
         res.send(gig)
     } catch (error) {

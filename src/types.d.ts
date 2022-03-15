@@ -99,14 +99,17 @@ export interface IGig extends Document {
     hours: number
     instrument: string
     specifics: string
-    applications: [{
-        applicant: Types.ObjectId
-        submission: {
-            audioFile: string
-            filename: string
-            notes: string
-        }
-    }]
+    applications: IApplication[]
+    isGigAvailable: boolean
+}
+
+export interface IApplication extends Document {
+    applicant: Types.ObjectId
+    submission: {
+        audioFile: string
+        filename: string
+        notes: string
+    }
 }
 
 export interface IBand extends Document {

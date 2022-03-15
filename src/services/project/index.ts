@@ -16,6 +16,7 @@ projectRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextF
         const members = [loggedInUser]
         const newProject = await new ProjectModel({ ...req.body, leader: loggedInUser, members })
         newProject.save()
+        await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { projects: newProject._id } })
         res.status(201).send(newProject)
     } catch (error) {
         (error)
@@ -36,7 +37,7 @@ projectRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFu
 
 projectRouter.get('/:projectId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const project = await ProjectModel.findById(req.params.projectId).populate('tasks')
+        const project = await ProjectModel.findById(req.params.projectId).populate('tasks').populate('members', ['firstName', 'lastName'])
         if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} was not found.`))
         res.send(project)
     } catch (error) {
