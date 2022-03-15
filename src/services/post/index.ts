@@ -26,7 +26,8 @@ postRouter.post('/', JWTAuth, parser.single('postImage'), async (req: Request, r
                 image: req.file?.path || '',
                 filename: req.file?.filename || ''
             }).save()
-            const projectWithNewPost = await ProjectModel.findByIdAndUpdate(req.params.projectId, { $push: { projectPosts: newPost._id } })
+            const projectWithNewPost = await ProjectModel.findByIdAndUpdate(req.params.projectId, { $push: { projectPosts: newPost._id } }, { new: true })
+                .populate({ path: 'projectPosts', select: ['text', 'image', 'likes', 'comments'], populate: { path: 'sender', select: ['firstName', 'lastName', 'avatar'] } })
             if (!projectWithNewPost) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
             res.status(201).send(projectWithNewPost)
         } else {
@@ -43,7 +44,7 @@ postRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
         const loggedInUser = await UserModel.findById(req.payload?._id)
         if (!loggedInUser) return next(createHttpError(404, `User with id ${req.payload?._id} could not be found.`))
         if (req.params.projectId) {
-            const project = await ProjectModel.findById(req.params.projectId).populate({ path: 'projectPosts', options: { sort: [['createdAt', 'asc']] } })
+            const project = await ProjectModel.findById(req.params.projectId).populate({ path: 'projectPosts', options: { sort: { 'createdAt': -1 } } })
             if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
             res.send(project.projectPosts)
         } else {
