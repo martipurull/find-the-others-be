@@ -11,7 +11,7 @@ commentsRouter.post('/', JWTAuth, async (req: Request, res: Response, next: Next
     try {
         const commenter = await UserModel.findById(req.payload?._id)
         if (!commenter) return next(createHttpError(404, `User with id ${req.payload?._id} could not be found.`))
-        const comment = { sender: commenter, text: req.body }
+        const comment = { sender: commenter._id, text: req.body.text }
         const postWithComment = await PostModel.findByIdAndUpdate(req.params.postId, { $push: { comments: comment } }, { new: true })
         if (!postWithComment) return next(createHttpError(404, `Post with id ${req.params.postId} does not exist.`))
         res.send(postWithComment)
@@ -80,7 +80,7 @@ commentsRouter.post('/:commentId/like', JWTAuth, async (req: Request, res: Respo
                     post.save()
                     res.send({ message: "You no longer like this comment.", comment: post.comments[commentIndex] })
                 } else {
-                    post.comments[commentIndex].likes.push(user)
+                    post.comments[commentIndex].likes.push(user._id)
                     post.save()
                     res.send({ message: 'You like this comment.', comment: post.comments[commentIndex] })
                 }

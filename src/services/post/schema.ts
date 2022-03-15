@@ -7,7 +7,7 @@ const CommentSchema = new Schema<IComment>({
     sender: { type: Schema.Types.ObjectId, ref: 'User' },
     text: { type: String, required: true },
     likes: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }]
-})
+}, { timestamps: true, toJSON: { virtuals: true } })
 
 const PostModel = new Schema<IPost>({
     sender: { type: Schema.Types.ObjectId, ref: 'User' },
@@ -21,6 +21,6 @@ const PostModel = new Schema<IPost>({
 }, { timestamps: true, toJSON: { virtuals: true } })
 
 PostModel.virtual('noOfPostLikes').get(function (this: IPost) { return this.likes.length })
-PostModel.virtual('noOfCommentLikes').get(function (this: IComment) { return this.likes.length })
+CommentSchema.virtual('noOfCommentLikes').get(function (this: IComment) { return this.likes.length })
 
 export default model('Post', PostModel)

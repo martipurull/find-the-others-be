@@ -61,6 +61,7 @@ postRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
             })
                 .sort({ createdAt: -1 })
                 .populate('sender', ['firstName', 'lastName', 'avatar', 'memberOf'])
+                .populate('comments')
             const postsForUser = posts.filter(p => p.isForProject === false)
             res.send(postsForUser)
         }
