@@ -10,7 +10,7 @@ const userRouter = Router()
 
 userRouter.use('/access', accessRouter)
 userRouter.use('/me', meRouter)
-userRouter.use('/connect/:connectionId', connectionRouter)
+userRouter.use('/connect', connectionRouter)
 
 userRouter.get('/find/:userId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {

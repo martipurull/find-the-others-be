@@ -7,7 +7,7 @@ const connectionRouter = Router({ mergeParams: true })
 
 connectionRouter.post('/send-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const connectionId = req.params.connectionId
+        const { connectionId } = req.body
         const userId = req.payload?._id
         if (connectionId === userId) return next(createHttpError(400, 'You cannot connect with yourself.'))
         const connectionRecipient = await UserModel.findByIdAndUpdate(connectionId, { $push: { connectionsReceived: userId } })
@@ -22,7 +22,7 @@ connectionRouter.post('/send-connection', JWTAuth, async (req: Request, res: Res
 
 connectionRouter.post('/withdraw-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { connectionId } = req.params
+        const { connectionId } = req.body
         const userId = req.payload?._id
         if (connectionId === userId) return next(createHttpError(400, 'You cannot withdraw a connection with yourself.'))
         const disconnectionRecipient = await UserModel.findByIdAndUpdate(connectionId, { $pull: { connectionsReceived: userId } })
@@ -37,10 +37,11 @@ connectionRouter.post('/withdraw-connection', JWTAuth, async (req: Request, res:
 
 connectionRouter.post('/accept-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { connectionId } = req.params
+        const { connectionId } = req.body
         const userId = req.payload?._id
         const acceptingUser = await UserModel.findByIdAndUpdate(userId, { $pull: { connectionsReceived: connectionId }, $push: { connections: connectionId } })
         if (!acceptingUser) return next(createHttpError(404, `The user with id ${userId} was not found.`))
+
         const acceptedUser = await UserModel.findByIdAndUpdate(connectionId, { $pull: { connectionsSent: userId }, $push: { connections: userId } })
         if (!acceptedUser) return next(createHttpError(404, `The user with id ${connectionId} was not found.`))
         res.send(`New connection established between user with id ${userId} and user with id ${connectionId}`)
@@ -51,7 +52,7 @@ connectionRouter.post('/accept-connection', JWTAuth, async (req: Request, res: R
 
 connectionRouter.post('/decline-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { connectionId } = req.params
+        const { connectionId } = req.body
         const userId = req.payload?._id
         const decliningUser = await UserModel.findByIdAndUpdate(userId, { $pull: { connectionsReceived: connectionId } })
         if (!decliningUser) return next(createHttpError(404, `The user with id ${userId} cannot be found.`))
@@ -65,7 +66,7 @@ connectionRouter.post('/decline-connection', JWTAuth, async (req: Request, res: 
 
 connectionRouter.post('/remove-connection', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { connectionId } = req.params
+        const { connectionId } = req.body
         const userId = req.payload?._id
         const unconnectingUser = await UserModel.findByIdAndUpdate(userId, { $pull: { connections: connectionId } })
         if (!unconnectingUser) return next(createHttpError(404, `The user with id ${userId} cannot be found.`))
