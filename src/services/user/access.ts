@@ -11,19 +11,34 @@ const accessRouter = Router()
 process.env.TS_NODE_DEV && require('dotenv').config()
 const { NODE_ENV, FE_URL } = process.env
 
+accessRouter.post('/check-email', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isEmailTaken = await UserModel.findOne({ email: req.body.email })
+        if (isEmailTaken) return next(createHttpError(400, 'The email is already taken.'))
+        res.send('The email is already taken.')
+    } catch (error) {
+        next(error)
+    }
+})
+
 accessRouter.post('/register', parser.single('userAvatar'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { firstName, lastName } = req.body
-        const newUser = new UserModel({
-            ...req.body,
-            avatar: req.file?.path || `https://ui-avatars.com/api/?name=${firstName}+${lastName}`,
-            filename: req.file?.filename
-        })
-        await newUser.save()
-        const { accessJWT, refreshJWT } = await provideTokens(newUser)
-        res.cookie('accessToken', accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
-        res.cookie('refreshToken', refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
-        res.status(201).send(newUser)
+        const isEmailTaken = await UserModel.findOne({ email: req.body.email })
+        if (isEmailTaken) {
+            const { firstName, lastName } = req.body
+            const newUser = new UserModel({
+                ...req.body,
+                avatar: req.file?.path || `https://ui-avatars.com/api/?name=${firstName}+${lastName}`,
+                filename: req.file?.filename
+            })
+            await newUser.save()
+            const { accessJWT, refreshJWT } = await provideTokens(newUser)
+            res.cookie('accessToken', accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+            res.cookie('refreshToken', refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+            res.status(201).send(newUser)
+        } else {
+            next(createHttpError(400, 'The email provided is already taken.'))
+        }
     } catch (error) {
         next(error)
     }
