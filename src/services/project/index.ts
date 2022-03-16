@@ -114,6 +114,7 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Requ
             if (projectWithoutTrackToDate.filename) {
                 await cloudinary.uploader.destroy(projectWithoutTrackToDate.filename)
             }
+            projectWithoutTrackToDate.members.map(async member => await UserModel.findByIdAndUpdate(member._id, { $pull: { projects: req.params.projectId } }))
             res.send(projectWithoutTrackToDate)
         } else {
             next(createHttpError(401, 'Only the project leader can delete a project track to date.'))
