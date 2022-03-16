@@ -19,6 +19,5 @@ const cloudinaryStorage = new CloudinaryStorage({
 });
 
 const parser = multer({ storage: cloudinaryStorage })
-const audioParser = multer({ storage: cloudinaryStorage })
 
 export { parser, cloudinary }

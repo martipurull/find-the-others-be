@@ -3,7 +3,7 @@ import createHttpError from 'http-errors'
 import JWTAuth from '../../middleware/JWTAuth'
 import postRouter from '../post'
 import UserModel from '../user/schema'
-import projectPostRouter from './projectPosts'
+import { cloudinary, parser } from '../utils/cloudinary'
 import ProjectModel from './schema'
 import taskRouter from './task'
 
@@ -78,6 +78,47 @@ projectRouter.delete('/:projectId', JWTAuth, async (req: Request, res: Response,
         }
     } catch (error) {
         (error)
+    }
+})
+
+//add and remove track as trackToDate
+
+projectRouter.post('/:projectId/add-trackToDate', JWTAuth, parser.single('audioFile'), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            if (req.file) {
+                const body = { trackToDate: req.file?.path, filename: req.file?.filename }
+                const projectWithNewTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, body, { new: true })
+                if (!projectWithNewTrackToDate) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
+                res.send(projectWithNewTrackToDate)
+            } else {
+                next(createHttpError(400, 'You did not provide a new track'))
+            }
+        } else {
+            next(createHttpError(401, 'Only the project leader can upload a project track to date.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            const body = { trackToDate: '', filename: '' }
+            const projectWithoutTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, body, { new: true })
+            if (!projectWithoutTrackToDate) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
+            if (projectWithoutTrackToDate.filename) {
+                await cloudinary.uploader.destroy(projectWithoutTrackToDate.filename)
+            }
+            res.send(projectWithoutTrackToDate)
+        } else {
+            next(createHttpError(401, 'Only the project leader can delete a project track to date.'))
+        }
+    } catch (error) {
+        next(error)
     }
 })
 
