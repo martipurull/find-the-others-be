@@ -127,4 +127,42 @@ taskRouter.delete('/:taskId/notes/:noteId', JWTAuth, async (req: Request, res: R
     }
 })
 
+//add and remove track as trackToDate
+
+taskRouter.post('/add-trackToDate', JWTAuth, parser.single('audioFile'), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            const body = { trackToDate: req.file?.path || isUserProjectLeader.trackToDate, filename: req.file?.filename || isUserProjectLeader.filename }
+            const projectWithNewTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, body, { new: true })
+            if (!projectWithNewTrackToDate) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
+            res.send(projectWithNewTrackToDate)
+        } else {
+            next(createHttpError(401, 'Only the project leader can upload a project track to date.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+taskRouter.delete('/remove-trackToDate', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.log('Here')
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            const body = { trackToDate: '', filename: '' }
+            const projectWithoutTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, body, { new: true })
+            if (!projectWithoutTrackToDate) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
+            if (projectWithoutTrackToDate.filename) {
+                await cloudinary.uploader.destroy(projectWithoutTrackToDate.filename)
+            }
+            res.send(projectWithoutTrackToDate)
+        } else {
+            next(createHttpError(401, 'Only the project leader can delete a project track to date.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
 export default taskRouter
