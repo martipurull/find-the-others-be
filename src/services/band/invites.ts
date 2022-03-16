@@ -23,7 +23,7 @@ bandInviteRouter.post('/send-invite', JWTAuth, async (req: Request, res: Respons
             await sendBandInvite(loggedInUser, offeredUser, invitingBand)
             res.send(`You invited ${offeredUser.firstName} ${offeredUser.lastName} to join ${invitingBand.name} as a member.`)
         } else {
-            next(createHttpError(401, 'You cannot invite musicians to join bands you are not an admin of.'))
+            next(createHttpError(403, 'You cannot invite musicians to join bands you are not an admin of.'))
         }
     } catch (error) {
         next(error)
@@ -46,7 +46,7 @@ bandInviteRouter.post('/withdraw-invite', JWTAuth, async (req: Request, res: Res
             await withdrawBandInvite(loggedInUser, offeredUser, offeringBand)
             res.send(`You withdrew your invitation to ${offeredUser.firstName} ${offeredUser.lastName}. They can no longer join ${invitingBand.name}.`)
         } else {
-            next(createHttpError(401, 'You cannot withdraw an invitation to join bands you are not an admin of.'))
+            next(createHttpError(403, 'You cannot withdraw an invitation to join bands you are not an admin of.'))
         }
     } catch (error) {
         next(error)
@@ -67,7 +67,7 @@ bandInviteRouter.post('/accept-invite', JWTAuth, async (req: Request, res: Respo
             await notifyBandMembers(loggedInUser, membersToEmail, invitingBand, messageToMembers)
             res.send(`${loggedInUser.firstName} ${loggedInUser.lastName} is now a member of ${invitingBand.name}.`)
         } else {
-            next(createHttpError(401, 'You cannot accept an invitation you have not received.'))
+            next(createHttpError(403, 'You cannot accept an invitation you have not received.'))
         }
     } catch (error) {
         next(error)
@@ -88,7 +88,7 @@ bandInviteRouter.post('/decline-invite', JWTAuth, async (req: Request, res: Resp
             await notifyBandMembers(loggedInUser, membersToEmail, invitingBand, messageToMembers)
             res.send(`You declined to become a member of ${invitingBand.name}`)
         } else {
-            next(createHttpError(401, 'You cannot decline an invitation you have not received.'))
+            next(createHttpError(403, 'You cannot decline an invitation you have not received.'))
         }
     } catch (error) {
         next(error)
@@ -109,7 +109,7 @@ bandInviteRouter.post('/remove-band-member', JWTAuth, async (req: Request, res: 
             await notifyRemovedMember(loggedInUser, memberWithoutBand, bandWithoutMember)
             res.send(`You have removed ${memberWithoutBand.firstName} ${memberWithoutBand.lastName} from your band ${bandWithoutMember.name}.`)
         } else {
-            next(createHttpError(401, 'You cannot withdraw an invitation to join bands you are not an admin of.'))
+            next(createHttpError(403, 'You cannot withdraw an invitation to join bands you are not an admin of.'))
         }
     } catch (error) {
         next(error)

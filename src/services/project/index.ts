@@ -57,7 +57,7 @@ projectRouter.put('/:projectId', JWTAuth, async (req: Request, res: Response, ne
             if (!editedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
             res.send(editedProject)
         } else {
-            next(createHttpError(401, 'You cannot edit a project you do not lead.'))
+            next(createHttpError(403, 'You cannot edit a project you do not lead.'))
         }
     } catch (error) {
         (error)
@@ -75,7 +75,7 @@ projectRouter.delete('/:projectId', JWTAuth, async (req: Request, res: Response,
             if (!deletedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
             res.status(204).send()
         } else {
-            next(createHttpError(401, 'You cannot delete a project you do not lead.'))
+            next(createHttpError(403, 'You cannot delete a project you do not lead.'))
         }
     } catch (error) {
         (error)
@@ -97,7 +97,7 @@ projectRouter.post('/:projectId/add-trackToDate', JWTAuth, parser.single('audioF
                 next(createHttpError(400, 'You did not provide a new track'))
             }
         } else {
-            next(createHttpError(401, 'Only the project leader can upload a project track to date.'))
+            next(createHttpError(403, 'Only the project leader can upload a project track to date.'))
         }
     } catch (error) {
         next(error)
@@ -117,7 +117,7 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Requ
             projectWithoutTrackToDate.members.map(async member => await UserModel.findByIdAndUpdate(member._id, { $pull: { projects: req.params.projectId } }))
             res.send(projectWithoutTrackToDate)
         } else {
-            next(createHttpError(401, 'Only the project leader can delete a project track to date.'))
+            next(createHttpError(403, 'Only the project leader can delete a project track to date.'))
         }
     } catch (error) {
         next(error)
@@ -134,7 +134,7 @@ projectRouter.post('/:projectId/send-track-to-band', JWTAuth, async (req: Reques
             isUserProjectLeader.bands.map(async band => await BandModel.findByIdAndUpdate(band._id, { $push: { readyTracks: trackToSend } }))
             res.send({ sentTrack: trackToSend, sender: isUserProjectLeader.leader, recipients: isUserProjectLeader.bands })
         } else {
-            next(createHttpError(401, 'Only the project leader can send the completed track to the project bands.'))
+            next(createHttpError(403, 'Only the project leader can send the completed track to the project bands.'))
         }
     } catch (error) {
         next(error)
@@ -151,7 +151,7 @@ projectRouter.post('/:projectId/complete-project', JWTAuth, async (req: Request,
             if (!completedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
             res.send(completedProject)
         } else {
-            next(createHttpError(401, 'Only the project leader can mak the project as completed.'))
+            next(createHttpError(403, 'Only the project leader can mak the project as completed.'))
         }
     } catch (error) {
         next(error)

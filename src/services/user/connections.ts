@@ -39,12 +39,16 @@ connectionRouter.post('/accept-connection', JWTAuth, async (req: Request, res: R
     try {
         const { connectionId } = req.body
         const userId = req.payload?._id
-        const acceptingUser = await UserModel.findByIdAndUpdate(userId, { $pull: { connectionsReceived: connectionId }, $push: { connections: connectionId } })
-        if (!acceptingUser) return next(createHttpError(404, `The user with id ${userId} was not found.`))
-
-        const acceptedUser = await UserModel.findByIdAndUpdate(connectionId, { $pull: { connectionsSent: userId }, $push: { connections: userId } })
-        if (!acceptedUser) return next(createHttpError(404, `The user with id ${connectionId} was not found.`))
-        res.send(`New connection established between user with id ${userId} and user with id ${connectionId}`)
+        const isIdInConnectionsReceived = await UserModel.findOne({ $and: [{ _id: userId }, { connectionsReceived: connectionId }] })
+        if (isIdInConnectionsReceived) {
+            const acceptingUser = await UserModel.findByIdAndUpdate(userId, { $pull: { connectionsReceived: connectionId }, $push: { connections: connectionId } })
+            if (!acceptingUser) return next(createHttpError(404, `The user with id ${userId} was not found.`))
+            const acceptedUser = await UserModel.findByIdAndUpdate(connectionId, { $pull: { connectionsSent: userId }, $push: { connections: userId } })
+            if (!acceptedUser) return next(createHttpError(404, `The user with id ${connectionId} was not found.`))
+            res.send(`New connection established between user with id ${userId} and user with id ${connectionId}`)
+        } else {
+            next(createHttpError(403, 'You cannot accept a connection request you have not received.'))
+        }
     } catch (error) {
         next(error)
     }
@@ -54,11 +58,16 @@ connectionRouter.post('/decline-connection', JWTAuth, async (req: Request, res: 
     try {
         const { connectionId } = req.body
         const userId = req.payload?._id
-        const decliningUser = await UserModel.findByIdAndUpdate(userId, { $pull: { connectionsReceived: connectionId } })
-        if (!decliningUser) return next(createHttpError(404, `The user with id ${userId} cannot be found.`))
-        const declinedUser = await UserModel.findByIdAndUpdate(connectionId, { $pull: { connectionsSent: userId } })
-        if (!declinedUser) return next(createHttpError(404, `User with id ${connectionId} was not found.`))
-        res.send(`You've declined the connection request from user with id ${connectionId}.`)
+        const isIdInConnectionsReceived = await UserModel.findOne({ $and: [{ _id: userId }, { connectionsReceived: connectionId }] })
+        if (isIdInConnectionsReceived) {
+            const decliningUser = await UserModel.findByIdAndUpdate(userId, { $pull: { connectionsReceived: connectionId } })
+            if (!decliningUser) return next(createHttpError(404, `The user with id ${userId} cannot be found.`))
+            const declinedUser = await UserModel.findByIdAndUpdate(connectionId, { $pull: { connectionsSent: userId } })
+            if (!declinedUser) return next(createHttpError(404, `User with id ${connectionId} was not found.`))
+            res.send(`You've declined the connection request from user with id ${connectionId}.`)
+        } else {
+            next(createHttpError(403, 'You cannot decline a connection request you have not received.'))
+        }
     } catch (error) {
         next(error)
     }

@@ -49,7 +49,7 @@ applicationsRouter.post('/decline', JWTAuth, async (req: Request, res: Response,
             await sendGigRejection(decliningUser, rejectedApplicant, gig, project)
             res.send(`You have turned down applicant with id ${applicantId} for gig with id ${req.params.gigId}.`)
         } else {
-            next(createHttpError(401, 'You cannot decline an application for a gig you did not post.'))
+            next(createHttpError(403, 'You cannot decline an application for a gig you did not post.'))
         }
     } catch (error) {
         next(error)
@@ -74,7 +74,7 @@ applicationsRouter.post('/accept', JWTAuth, async (req: Request, res: Response, 
             const { contactedRejects, unableToContactRejects } = await sendGigRejections(acceptingUser!, remainingApplicantsIds, gig, project)
             res.send({ successfulApplicant, contactedRejects, unableToContactRejects })
         } else {
-            next(createHttpError(401, 'You cannot accept an application for a gig you did not post.'))
+            next(createHttpError(403, 'You cannot accept an application for a gig you did not post.'))
         }
     } catch (error) {
         next(error)

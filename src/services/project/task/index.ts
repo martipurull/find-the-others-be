@@ -59,7 +59,7 @@ taskRouter.put('/:taskId', JWTAuth, parser.single('audioFile'), async (req: Requ
             }
             res.send(editedTask)
         } else {
-            next(createHttpError(401, "You're not authorised to edit this task."))
+            next(createHttpError(403, "You're not authorised to edit this task."))
         }
     } catch (error) {
         (error)
@@ -78,7 +78,7 @@ taskRouter.delete('/:taskId', JWTAuth, async (req: Request, res: Response, next:
             }
             res.status(204).send()
         } else {
-            next(createHttpError(401, "You're not authorised to delete this task."))
+            next(createHttpError(403, "You're not authorised to delete this task."))
         }
     } catch (error) {
         (error)
