@@ -27,7 +27,7 @@ meRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunctio
 
 meRouter.put('/', JWTAuth, parser.single('userAvatar'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (req.payload) {
+        if (req.payload && !req.body.password) {
             const oldUser = await UserModel.findById(req.payload._id)
             if (oldUser) {
                 const body = { ...req.body, avatar: req.file?.path || oldUser.avatar, filename: req.file?.filename || oldUser.filename }
@@ -57,6 +57,25 @@ meRouter.delete('/', JWTAuth, async (req: Request, res: Response, next: NextFunc
                 await cloudinary.uploader.destroy(deletedUser.filename)
             }
             res.status(204).send()
+        } else {
+            next(createHttpError(400, 'Invalid request.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+//change password
+
+meRouter.put('/change-password', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (req.payload) {
+            const newPassword = req.body.password
+            const user = await UserModel.findOne({ _id: req.payload._id })
+            if (!user) return next(createHttpError(404, `User with id ${req.payload._id} was not found.`))
+            user.password = newPassword
+            await user.save()
+            res.send(user)
         } else {
             next(createHttpError(400, 'Invalid request.'))
         }

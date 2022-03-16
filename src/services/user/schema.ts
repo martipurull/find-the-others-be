@@ -28,11 +28,11 @@ const UserSchema = new Schema<IUser>({
 UserSchema.virtual('noOfConnections').get(function (this: IUser) { return this.connections.length })
 
 UserSchema.pre('save', async function (next) {
-    const newUser = this
+    const user = this
     const plainPW = this.password
-    if (newUser.isModified('password')) {
+    if (user.isModified('password')) {
         const hashedPW = await bcrypt.hash(plainPW, 12)
-        newUser.password = hashedPW
+        user.password = hashedPW
     }
     next()
 })
