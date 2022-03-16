@@ -88,6 +88,26 @@ bandRouter.delete('/:bandId', JWTAuth, async (req: Request, res: Response, next:
     }
 })
 
+//release track
+
+bandRouter.post('/:bandId/release-track', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserBandAdmin = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { bandAdmins: req.payload?._id }] })
+        if (isUserBandAdmin) {
+            const { trackId } = req.body
+            const trackToRelease = isUserBandAdmin.readyTracks.find(track => track._id.toString() === trackId)
+            if (!trackToRelease) return next(createHttpError(404, `Track with id ${trackId} cannot be found.`))
+            const moveTracks = await BandModel.findByIdAndUpdate(req.params.bandId, { $pull: { readyTracks: { _id: trackId } }, $push: { releasedTracks: trackToRelease } }, { new: true })
+            if (!moveTracks) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
+            res.send(moveTracks)
+        } else {
+            next(createHttpError(401, 'You cannot release songs for bands you are not an admin of.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
 //band invites
 bandRouter.use('/:bandId', bandInviteRouter)
 

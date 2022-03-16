@@ -5,6 +5,7 @@ import postRouter from '../post'
 import UserModel from '../user/schema'
 import { cloudinary, parser } from '../utils/cloudinary'
 import ProjectModel from './schema'
+import BandModel from '../band/schema'
 import taskRouter from './task'
 
 const projectRouter = Router({ mergeParams: true })
@@ -13,8 +14,8 @@ projectRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextF
     try {
         const loggedInUser = await UserModel.findById(req.payload?._id)
         if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
-        const members = [loggedInUser]
-        const newProject = await new ProjectModel({ ...req.body, leader: loggedInUser, members })
+        const members = [loggedInUser._id]
+        const newProject = new ProjectModel({ ...req.body, leader: loggedInUser._id, members })
         newProject.save()
         await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { projects: newProject._id } })
         res.status(201).send(newProject)
@@ -116,6 +117,40 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Requ
             res.send(projectWithoutTrackToDate)
         } else {
             next(createHttpError(401, 'Only the project leader can delete a project track to date.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+//send completed track to bands for release
+
+projectRouter.post('/:projectId/send-track-to-band', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            const trackToSend = { track: isUserProjectLeader.trackToDate, filename: isUserProjectLeader.filename }
+            isUserProjectLeader.bands.map(async band => await BandModel.findByIdAndUpdate(band._id, { $push: { readyTracks: trackToSend } }))
+            res.send({ sentTrack: trackToSend, sender: isUserProjectLeader.leader, recipients: isUserProjectLeader.bands })
+        } else {
+            next(createHttpError(401, 'Only the project leader can send the completed track to the project bands.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+//complete project: make inactive
+
+projectRouter.post('/:projectId/complete-project', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            const completedProject = await ProjectModel.findByIdAndUpdate(req.params.projectId, { isActive: false }, { new: true })
+            if (!completedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
+            res.send(completedProject)
+        } else {
+            next(createHttpError(401, 'Only the project leader can mak the project as completed.'))
         }
     } catch (error) {
         next(error)

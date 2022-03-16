@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
-import { IBand, IReleasedTrack } from '../../types'
+import { IBand, ITrack } from '../../types'
 
 const { Schema, model } = mongoose
 
-const ReleasedTrack = new Schema<IReleasedTrack>({
+const Track = new Schema<ITrack>({
     track: String,
     filename: String
 })
@@ -13,7 +13,8 @@ const BandModel = new Schema<IBand>({
     bandAdmins: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     invitationsSent: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    releasedTracks: [ReleasedTrack],
+    readyTracks: [Track],
+    releasedTracks: [Track],
     projects: [{ type: Schema.Types.ObjectId, ref: 'Project' }],
     blurb: { type: String, required: true },
     bio: { type: String, required: true },

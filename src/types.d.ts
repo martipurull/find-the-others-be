@@ -55,6 +55,7 @@ export interface IProject extends Document {
     bands: Types.ObjectId[]
     projectPosts: Types.ObjectId[]
     tasks: Types.ObjectId[]
+    isActive: boolean
 }
 
 export interface ITask extends Document {
@@ -117,7 +118,8 @@ export interface IBand extends Document {
     bandAdmins: Types.ObjectId[]
     members: Types.ObjectId[]
     invitationsSent: Types.ObjectId[]
-    releasedTracks: IReleasedTrack[]
+    readyTracks: ITrack[]
+    releasedTracks: ITrack[]
     projects: Types.ObjectId[]
     blurb: string
     bio: string
@@ -126,7 +128,7 @@ export interface IBand extends Document {
     followedBy: Types.ObjectId[]
 }
 
-export interface IReleasedTrack extends Document {
+export interface ITrack extends Document {
     track: string
     filename: string
 }
