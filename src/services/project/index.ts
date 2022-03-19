@@ -73,6 +73,7 @@ projectRouter.delete('/:projectId', JWTAuth, async (req: Request, res: Response,
         if (loggedInUserId === project.leader.toString()) {
             const deletedProject = await ProjectModel.findByIdAndDelete(req.params.projectId)
             if (!deletedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
+            deletedProject.members.map(async member => await UserModel.findByIdAndUpdate(member._id, { $pull: { projects: req.params.projectId } }))
             res.status(204).send()
         } else {
             next(createHttpError(403, 'You cannot delete a project you do not lead.'))
@@ -89,8 +90,8 @@ projectRouter.post('/:projectId/add-trackToDate', JWTAuth, parser.single('audioF
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
         if (isUserProjectLeader) {
             if (req.file) {
-                const body = { trackToDate: req.file?.path, filename: req.file?.filename }
-                const projectWithNewTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, body, { new: true })
+                const trackToDate = { audiofile: req.file?.path, filename: req.file?.filename }
+                const projectWithNewTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackToDate: trackToDate }, { new: true })
                 if (!projectWithNewTrackToDate) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
                 res.send(projectWithNewTrackToDate)
             } else {
@@ -108,14 +109,54 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Requ
     try {
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
         if (isUserProjectLeader) {
-            const body = { trackToDate: '', filename: '' }
-            const projectWithoutTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, body, { new: true })
+            const trackToDate = { audiofile: '', filename: '' }
+            const projectWithoutTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackToDate: trackToDate }, { new: true })
             if (!projectWithoutTrackToDate) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
-            if (projectWithoutTrackToDate.filename) {
-                await cloudinary.uploader.destroy(projectWithoutTrackToDate.filename)
+            if (projectWithoutTrackToDate.trackToDate.filename) {
+                await cloudinary.uploader.destroy(projectWithoutTrackToDate.trackToDate.filename)
             }
-            projectWithoutTrackToDate.members.map(async member => await UserModel.findByIdAndUpdate(member._id, { $pull: { projects: req.params.projectId } }))
             res.send(projectWithoutTrackToDate)
+        } else {
+            next(createHttpError(403, 'Only the project leader can delete a project track to date.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+//add and remove track as trackToDate
+
+projectRouter.post('/:projectId/add-trackCover', JWTAuth, parser.single('trackCover'), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            if (req.file) {
+                const trackCover = { image: req.file?.path, filename: req.file?.filename }
+                const projectWithNewTrackCover = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackCover: trackCover }, { new: true })
+                if (!projectWithNewTrackCover) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
+                res.send(projectWithNewTrackCover)
+            } else {
+                next(createHttpError(400, 'You did not provide a new track cover.'))
+            }
+        } else {
+            next(createHttpError(403, 'Only the project leader can upload the track artwork.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+projectRouter.delete('/:projectId/remove-trackCover', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
+        if (isUserProjectLeader) {
+            const trackCover = { image: '', filename: '' }
+            const projectWithoutTrackCover = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackCover: trackCover }, { new: true })
+            if (!projectWithoutTrackCover) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
+            if (projectWithoutTrackCover.trackCover.filename) {
+                await cloudinary.uploader.destroy(projectWithoutTrackCover.trackCover.filename)
+            }
+            res.send(projectWithoutTrackCover)
         } else {
             next(createHttpError(403, 'Only the project leader can delete a project track to date.'))
         }
@@ -130,7 +171,10 @@ projectRouter.post('/:projectId/send-track-to-band', JWTAuth, async (req: Reques
     try {
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
         if (isUserProjectLeader) {
-            const trackToSend = { track: isUserProjectLeader.trackToDate, filename: isUserProjectLeader.filename }
+            const trackToSend = {
+                track: { audiofile: isUserProjectLeader.trackToDate.audiofile, filename: isUserProjectLeader.trackToDate.filename },
+                cover: { image: isUserProjectLeader.trackCover.image, filename: isUserProjectLeader.trackCover.filename }
+            }
             isUserProjectLeader.bands.map(async band => await BandModel.findByIdAndUpdate(band._id, { $push: { readyTracks: trackToSend } }))
             res.send({ sentTrack: trackToSend, sender: isUserProjectLeader.leader, recipients: isUserProjectLeader.bands })
         } else {

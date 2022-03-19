@@ -9,8 +9,14 @@ const ProjectModel = new Schema<IProject>({
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     description: { type: String, required: true },
     dueDate: Date,
-    trackToDate: String,
-    filename: String,
+    trackToDate: {
+        audiofile: String,
+        filename: String
+    },
+    trackCover: {
+        image: String,
+        filename: String
+    },
     bands: [{ type: Schema.Types.ObjectId, ref: 'Band', required: true }],
     projectPosts: [{ type: Schema.Types.ObjectId, ref: 'Post' }],
     tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }],

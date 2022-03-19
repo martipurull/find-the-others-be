@@ -51,7 +51,14 @@ export interface IProject extends Document {
     members: Types.ObjectId[]
     description: string
     dueDate: date
-    trackToDate: string
+    trackToDate: {
+        audiofile: string
+        filename: string
+    }
+    trackCover: {
+        image: string
+        filename: string
+    }
     filename: string
     bands: Types.ObjectId[]
     projectPosts: Types.ObjectId[]
@@ -130,6 +137,12 @@ export interface IBand extends Document {
 }
 
 export interface ITrack extends Document {
-    track: string
-    filename: string
+    track: {
+        audiofile: string
+        filename: string
+    }
+    cover: {
+        image: string
+        filename: string
+    }
 }
