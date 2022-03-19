@@ -47,7 +47,7 @@ taskRouter.get('/:taskId', JWTAuth, async (req: Request, res: Response, next: Ne
 taskRouter.put('/:taskId', JWTAuth, parser.single('audioFile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
-        const isUserTaskMusician = await TaskModel.findOne({ $and: [{ _id: req.params.taskId }, { musician: req.payload?._id }] })
+        const isUserTaskMusician = await TaskModel.findOne({ $and: [{ _id: req.params.taskId }, { musicians: req.payload?._id }] })
         if (isUserProjectLeader || isUserTaskMusician) {
             const oldTask = await TaskModel.findById(req.params.taskId)
             if (!oldTask) return next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
@@ -69,7 +69,7 @@ taskRouter.put('/:taskId', JWTAuth, parser.single('audioFile'), async (req: Requ
 taskRouter.delete('/:taskId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { leader: req.payload?._id }] })
-        const isUserTaskMusician = await TaskModel.findOne({ $and: [{ _id: req.params.taskId }, { musician: req.payload?._id }] })
+        const isUserTaskMusician = await TaskModel.findOne({ $and: [{ _id: req.params.taskId }, { musicians: req.payload?._id }] })
         if (isUserProjectLeader || isUserTaskMusician) {
             const deletedTask = await TaskModel.findByIdAndDelete(req.params.taskId)
             if (!deletedTask) return next(createHttpError(404, `Task with id ${req} was not found.`))

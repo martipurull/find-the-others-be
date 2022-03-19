@@ -6,11 +6,11 @@ const { Schema, model } = mongoose
 const NoteSchema = new Schema({
     sender: { type: Schema.Types.ObjectId, ref: 'User' },
     text: String
-})
+}, { timestamps: true })
 
 const TaskModel = new Schema<ITask>({
     status: { type: String, required: true, enum: ['todo', 'doing', 'done'], default: 'todo' },
-    musician: { type: Schema.Types.ObjectId, ref: 'User' },
+    musicians: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     title: { type: String, required: true },
     description: { type: String, required: true },
     audioFile: String,

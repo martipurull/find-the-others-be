@@ -68,7 +68,7 @@ export interface IProject extends Document {
 
 export interface ITask extends Document {
     status: string
-    musician: Types.ObjectId
+    musicians: Types.ObjectId[]
     title: string
     description: string
     audioFile: string
