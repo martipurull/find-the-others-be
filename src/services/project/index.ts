@@ -28,7 +28,7 @@ projectRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFu
     try {
         const loggedInUserId = req.payload?._id
         if (!loggedInUserId) return next(createHttpError(404, `No logged in user was found.`))
-        const userProjects = await ProjectModel.find({ $in: { members: loggedInUserId } }).populate('tasks', ['title', 'description'])
+        const userProjects = await ProjectModel.find({ members: loggedInUserId }).populate('tasks', ['title', 'description'])
         if (!userProjects) return next(createHttpError(404, `User with id ${loggedInUserId} has no projects.`))
         res.send(userProjects)
     } catch (error) {
