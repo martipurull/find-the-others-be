@@ -6,6 +6,7 @@ import UserModel from '../user/schema'
 import { cloudinary, parser } from '../utils/cloudinary'
 import ProjectModel from './schema'
 import BandModel from '../band/schema'
+import GigModel from '../gig/schema'
 import taskRouter from './task'
 
 const projectRouter = Router({ mergeParams: true })
@@ -78,6 +79,17 @@ projectRouter.delete('/:projectId', JWTAuth, async (req: Request, res: Response,
         } else {
             next(createHttpError(403, 'You cannot delete a project you do not lead.'))
         }
+    } catch (error) {
+        (error)
+    }
+})
+
+//get gigs for a project
+projectRouter.get('/:projectId/gigs', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const gigsForProject = await GigModel.find({ project: req.params.projectId })
+        if (!gigsForProject) return next(createHttpError(404, `Project with id ${req.params.projectId} was not found.`))
+        res.send(gigsForProject)
     } catch (error) {
         (error)
     }

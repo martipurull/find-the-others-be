@@ -88,6 +88,27 @@ bandRouter.delete('/:bandId', JWTAuth, async (req: Request, res: Response, next:
     }
 })
 
+//follow and unfollow bands
+
+bandRouter.post('/:bandId/like', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await UserModel.findById(req.payload?._id)
+        if (!user) return next(createHttpError(404, `No user logged in`))
+        const userFollowsBand = await BandModel.findOne({ $and: [{ _id: req.params.bandId }, { followedBy: user._id }] })
+        if (userFollowsBand) {
+            const unfollowedBand = await BandModel.findByIdAndUpdate(req.params.bandId, { $pull: { followedBy: user._id } })
+            if (!unfollowedBand) return next(createHttpError(404, `Post with id ${req.params.bandId} does not exist.`))
+            res.send("You don't follow this band anymore.")
+        } else {
+            const followedBand = await BandModel.findByIdAndUpdate(req.params.bandId, { $push: { followedBy: user._id } })
+            if (!followedBand) return next(createHttpError(404, `Post with id ${req.params.bandId} does not exist.`))
+            res.send('You follow this band.')
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
 //release track
 
 bandRouter.post('/:bandId/release-track', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {

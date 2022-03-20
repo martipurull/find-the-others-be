@@ -75,8 +75,6 @@ commentsRouter.post('/:commentId/like', JWTAuth, async (req: Request, res: Respo
                 if (userLikesComment) {
                     const remainingLikes = post.comments[commentIndex].likes.filter(liker => liker._id.toString() !== user._id.toString())
                     post.comments[commentIndex].likes = remainingLikes
-                    // const likerIndex = post.comments[commentIndex].likes.findIndex(l => l._id.toString() === user._id.toString())
-                    // post.comments[commentIndex].likes.splice(likerIndex, 1)
                     post.save()
                     res.send({ message: "You no longer like this comment.", comment: post.comments[commentIndex] })
                 } else {

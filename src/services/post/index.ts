@@ -135,7 +135,7 @@ postRouter.post('/:postId/like', JWTAuth, async (req: Request, res: Response, ne
     try {
         const user = await UserModel.findById(req.payload?._id)
         if (!user) return next(createHttpError(404, `No user logged in`))
-        const userLikesPost = await PostModel.findOne({ $and: [{ _id: req.params.postId }, { likes: { $in: user } }] })
+        const userLikesPost = await PostModel.findOne({ $and: [{ _id: req.params.postId }, { likes: user._id }] })
         if (userLikesPost) {
             const unlikedPost = await PostModel.findByIdAndUpdate(req.params.postId, { $pull: { likes: user._id } })
             if (!unlikedPost) return next(createHttpError(404, `Post with id ${req.params.postId} does not exist.`))
