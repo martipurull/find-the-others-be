@@ -90,7 +90,7 @@ bandRouter.delete('/:bandId', JWTAuth, async (req: Request, res: Response, next:
 
 //follow and unfollow bands
 
-bandRouter.post('/:bandId/like', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+bandRouter.post('/:bandId/follow', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = await UserModel.findById(req.payload?._id)
         if (!user) return next(createHttpError(404, `No user logged in`))
