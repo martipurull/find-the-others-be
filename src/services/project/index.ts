@@ -214,6 +214,18 @@ projectRouter.post('/:projectId/complete-project', JWTAuth, async (req: Request,
     }
 })
 
+projectRouter.delete('/:projectId/leave', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userWithoutProject = await UserModel.findByIdAndUpdate(req.payload?._id, { $pull: { projects: req.params.projectId } })
+        if (!userWithoutProject) return next(createHttpError(404, `User with project id ${req.payload?._id} cannot not be found.`))
+        const projectWithoutUser = await ProjectModel.findByIdAndUpdate(req.params.projectId, { $pull: { members: req.payload?._id } })
+        if (!projectWithoutUser) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
+        res.send('You are no longer a member of this project.')
+    } catch (error) {
+        next(error)
+    }
+})
+
 projectRouter.use('/:projectId/posts', postRouter)
 projectRouter.use('/:projectId/tasks', taskRouter)
 
