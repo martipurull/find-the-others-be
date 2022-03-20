@@ -136,7 +136,7 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Requ
     }
 })
 
-//add and remove track as trackToDate
+//add and remove trackCover
 
 projectRouter.post('/:projectId/add-trackCover', JWTAuth, parser.single('trackCover'), async (req: Request, res: Response, next: NextFunction) => {
     try {
