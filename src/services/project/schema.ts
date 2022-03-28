@@ -8,6 +8,8 @@ const ProjectModel = new Schema<IProject>({
     leader: { type: Schema.Types.ObjectId, ref: 'User' },
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     description: { type: String, required: true },
+    projectImage: { type: String },
+    filename: { type: String },
     dueDate: Date,
     trackToDate: {
         audiofile: String,

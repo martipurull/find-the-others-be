@@ -13,9 +13,11 @@ const { NODE_ENV, FE_URL } = process.env
 
 accessRouter.post('/check-email', async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log(req.body);
+
         const isEmailTaken = await UserModel.findOne({ email: req.body.email })
         if (isEmailTaken) return next(createHttpError(400, 'The email is already taken.'))
-        res.send('The email is already taken.')
+        res.send('You can use this email.')
     } catch (error) {
         next(error)
     }
@@ -24,7 +26,7 @@ accessRouter.post('/check-email', async (req: Request, res: Response, next: Next
 accessRouter.post('/register', parser.single('userAvatar'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const isEmailTaken = await UserModel.findOne({ email: req.body.email })
-        if (isEmailTaken) {
+        if (!isEmailTaken) {
             const { firstName, lastName } = req.body
             const newUser = new UserModel({
                 ...req.body,
@@ -63,8 +65,8 @@ accessRouter.post('/login', async (req: Request, res: Response, next: NextFuncti
 
 accessRouter.post('/refreshToken', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { currentRefreshJWT } = req.body
-        const { accessJWT, refreshJWT } = await verifyJWTAndRegenerate(currentRefreshJWT)
+        const { refreshToken } = req.cookies
+        const { accessJWT, refreshJWT } = await verifyJWTAndRegenerate(refreshToken)
         res.cookie('accessToken', accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
         res.cookie('refreshToken', refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
         res.send('New tokens sent.')

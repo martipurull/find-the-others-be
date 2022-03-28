@@ -16,7 +16,13 @@ projectRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextF
         const loggedInUser = await UserModel.findById(req.payload?._id)
         if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
         const members = [loggedInUser._id]
-        const newProject = new ProjectModel({ ...req.body, leader: loggedInUser._id, members })
+        const newProject = new ProjectModel({
+            ...req.body,
+            leader: loggedInUser._id,
+            members,
+            projectImage: req.file?.path,
+            filename: req.file?.filename
+        })
         newProject.save()
         await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { projects: newProject._id } })
         res.status(201).send(newProject)

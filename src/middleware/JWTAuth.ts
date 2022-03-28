@@ -8,10 +8,11 @@ const JWTAuth = async (req: Request, res: Response, next: NextFunction) => {
     } else {
         try {
             const token = req.cookies.accessToken
-            const payload = await verifyJWT(token)
-            req.payload = { _id: payload._id, email: payload.email }
+            const payload = verifyJWT(token)
+            req.payload = { _id: (await payload)._id, email: (await payload).email }
             next()
         } catch (error) {
+            console.log(error)
             next(createHttpError(401, 'Invalid token provided in cookies.'))
         }
     }

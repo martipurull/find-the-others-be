@@ -7,7 +7,7 @@ export interface IUser extends Document {
     email: string
     password: string
     username: string
-    isMusician: boolean
+    musicianOrFan: string
     refreshJWT: string
     facebookId: string
     googleId: string
@@ -50,6 +50,8 @@ export interface IProject extends Document {
     leader: Types.ObjectId
     members: Types.ObjectId[]
     description: string
+    projectImage: string
+    filename: string
     dueDate: date
     trackToDate: {
         audiofile: string

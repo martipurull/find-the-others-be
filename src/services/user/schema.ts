@@ -10,7 +10,7 @@ const UserSchema = new Schema<IUser>({
     email: { type: String, required: true },
     password: { type: String, required: true },
     username: { type: String, required: true },
-    isMusician: { type: Boolean },
+    musicianOrFan: { type: String, required: true },
     refreshJWT: String,
     facebookId: String,
     googleId: String,
