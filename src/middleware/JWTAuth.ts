@@ -13,7 +13,7 @@ const JWTAuth = async (req: Request, res: Response, next: NextFunction) => {
             next()
         } catch (error) {
             console.log(error)
-            next(createHttpError(401, 'Invalid token provided in cookies.'))
+            next(createHttpError(401, 'Invalid access token provided in cookies.'))
         }
     }
 }

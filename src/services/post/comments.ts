@@ -11,9 +11,10 @@ commentsRouter.post('/', JWTAuth, async (req: Request, res: Response, next: Next
     try {
         const commenter = await UserModel.findById(req.payload?._id)
         if (!commenter) return next(createHttpError(404, `User with id ${req.payload?._id} could not be found.`))
+        const { postId } = req.body
         const comment = { sender: commenter._id, text: req.body.text }
-        const postWithComment = await PostModel.findByIdAndUpdate(req.params.postId, { $push: { comments: comment } }, { new: true })
-        if (!postWithComment) return next(createHttpError(404, `Post with id ${req.params.postId} does not exist.`))
+        const postWithComment = await PostModel.findByIdAndUpdate(postId, { $push: { comments: comment } }, { new: true })
+        if (!postWithComment) return next(createHttpError(404, `Post with id ${postId} does not exist.`))
         res.send(postWithComment)
     } catch (error) {
         next(error)
@@ -61,14 +62,16 @@ commentsRouter.delete('/:commentId', JWTAuth, async (req: Request, res: Response
 
 //like and unlike comments
 
-commentsRouter.post('/:commentId/like', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+commentsRouter.post('/likeComment', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = await UserModel.findById(req.payload!._id) as Types.ObjectId
         if (!user) return next(createHttpError(404, `No user logged in`))
-        const post = await PostModel.findById(req.params.postId)
-        if (!post) return next(createHttpError(404, `Post with id ${req.params.postId} does not exist.`))
+        const { postId } = req.body
+        const { commentId } = req.body
+        const post = await PostModel.findById(postId)
+        if (!post) return next(createHttpError(404, `Post with id ${postId} does not exist.`))
         if (post.comments && post.comments.length > 0) {
-            const commentIndex = post.comments.findIndex(c => c._id.toString() === req.params.commentId)
+            const commentIndex = post.comments.findIndex(c => c._id.toString() === commentId)
             if (commentIndex !== -1) {
                 let userLikesComment = false
                 post.comments[commentIndex].likes.forEach(likerId => likerId.toString() === user._id.toString() ? userLikesComment = true : userLikesComment = false)
@@ -83,10 +86,10 @@ commentsRouter.post('/:commentId/like', JWTAuth, async (req: Request, res: Respo
                     res.send({ message: 'You like this comment.', comment: post.comments[commentIndex] })
                 }
             } else {
-                next(createHttpError(404, `Comment with id ${req.params.commentId} does not exist.`))
+                next(createHttpError(404, `Comment with id ${commentId} does not exist.`))
             }
         } else {
-            next(createHttpError(404, `Post with id ${req.params.postId} has no comments.`))
+            next(createHttpError(404, `Post with id ${postId} has no comments.`))
         }
     } catch (error) {
         next(error)

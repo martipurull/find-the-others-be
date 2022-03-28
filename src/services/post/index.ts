@@ -21,8 +21,8 @@ postRouter.post('/', JWTAuth, parser.single('postImage'), async (req: Request, r
             const newPost = await new PostModel({
                 ...req.body,
                 sender: sender._id,
-                isForProject: true,
-                postProject: project,
+                isForProject: project ? true : false,
+                postProject: project ? project : '',
                 image: req.file?.path || '',
                 filename: req.file?.filename || ''
             }).save()
@@ -62,7 +62,7 @@ postRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
             })
                 .sort({ createdAt: -1 })
                 .populate('sender', ['firstName', 'lastName', 'avatar', 'memberOf'])
-                .populate('comments')
+                .populate({ path: 'comments', populate: { path: 'sender', select: ['firstName', 'lastName', 'avatar'] } })
             const postsForUser = posts.filter(p => p.isForProject === false)
             res.send(postsForUser)
         }
@@ -131,18 +131,19 @@ postRouter.delete('/:postId', JWTAuth, async (req: Request, res: Response, next:
 
 //like & unlike posts
 
-postRouter.post('/:postId/like', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+postRouter.post('/likePost', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = await UserModel.findById(req.payload?._id)
         if (!user) return next(createHttpError(404, `No user logged in`))
-        const userLikesPost = await PostModel.findOne({ $and: [{ _id: req.params.postId }, { likes: user._id }] })
+        const { postId } = req.body
+        const userLikesPost = await PostModel.findOne({ $and: [{ _id: postId }, { likes: user._id }] })
         if (userLikesPost) {
-            const unlikedPost = await PostModel.findByIdAndUpdate(req.params.postId, { $pull: { likes: user._id } })
-            if (!unlikedPost) return next(createHttpError(404, `Post with id ${req.params.postId} does not exist.`))
+            const unlikedPost = await PostModel.findByIdAndUpdate(postId, { $pull: { likes: user._id } })
+            if (!unlikedPost) return next(createHttpError(404, `Post with id ${postId} does not exist.`))
             res.send("You don't like this post anymore.")
         } else {
-            const likedPost = await PostModel.findByIdAndUpdate(req.params.postId, { $push: { likes: user._id } })
-            if (!likedPost) return next(createHttpError(404, `Post with id ${req.params.postId} does not exist.`))
+            const likedPost = await PostModel.findByIdAndUpdate(postId, { $push: { likes: user._id } })
+            if (!likedPost) return next(createHttpError(404, `Post with id ${postId} does not exist.`))
             res.send('You like this post.')
         }
     } catch (error) {
@@ -152,7 +153,7 @@ postRouter.post('/:postId/like', JWTAuth, async (req: Request, res: Response, ne
 
 //comments
 
-postRouter.use('/:postId/comments', commentsRouter)
+postRouter.use('/comments', commentsRouter)
 
 
 export default postRouter
