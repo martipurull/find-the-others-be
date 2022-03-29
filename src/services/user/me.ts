@@ -10,11 +10,11 @@ meRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunctio
     try {
         if (req.payload) {
             const user = await UserModel.findById(req.payload._id)
-                .populate('connections', ['firstName', 'lastName'])
-                .populate('connectionsReceived', ['firstName', 'lastName'])
-                .populate('memberOf', 'name')
-                .populate('projects', 'title')
-                .populate('applications', ['title', 'project', 'bands'])
+                .populate('connections', ['firstName', 'lastName', 'avatar', 'connections'])
+                .populate('connectionsReceived', ['firstName', 'lastName', 'avatar', 'connections'])
+                .populate('memberOf', ['name', 'avatar', 'followedBy'])
+                .populate({ path: 'projects', select: ['title', 'projectImage', 'members'], populate: { path: 'members', select: ['firstName', 'lastName'] } })
+                .populate({ path: 'applications', select: ['title', 'project', 'description', 'instrument', 'genre'], populate: { path: 'project', select: ['title'] } })
                 .populate({ path: 'bandOffers', select: ['name', 'avatar'], populate: { path: 'members', select: ['firstName', 'lastName'] } })
             user ? res.send(user) : next(createHttpError(404, `User with id ${req.payload._id} was not be found.`))
         } else {

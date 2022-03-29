@@ -11,13 +11,11 @@ const accessRouter = Router()
 process.env.TS_NODE_DEV && require('dotenv').config()
 const { NODE_ENV, FE_URL } = process.env
 
-accessRouter.post('/check-email', async (req: Request, res: Response, next: NextFunction) => {
+accessRouter.post('/check-username', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log(req.body);
-
-        const isEmailTaken = await UserModel.findOne({ email: req.body.email })
-        if (isEmailTaken) return next(createHttpError(400, 'The email is already taken.'))
-        res.send('You can use this email.')
+        const isUsernameTaken = await UserModel.findOne({ username: req.body.username })
+        if (isUsernameTaken) return next(createHttpError(400, 'This username is already taken.'))
+        res.send('This username is available.')
     } catch (error) {
         next(error)
     }
