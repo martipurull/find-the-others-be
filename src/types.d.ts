@@ -109,6 +109,7 @@ export interface IGig extends Document {
     genre: string
     hours: number
     instrument: string
+    otherInstrument: string
     specifics: string
     applications: IApplication[]
     isGigAvailable: boolean

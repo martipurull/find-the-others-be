@@ -21,6 +21,7 @@ const GigModel = new Schema<IGig>({
     genre: { type: String, required: true },
     hours: { type: Number, required: true },
     instrument: { type: String, required: true, enum: ['guitar', 'bass', 'drums', 'percussion', 'strings', 'brass', 'wind', 'vocals', 'keys'] },
+    otherInstrument: String,
     specifics: String,
     applications: [ApplicationSchema],
     isGigAvailable: { type: Boolean, default: true }

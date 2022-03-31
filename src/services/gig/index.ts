@@ -14,7 +14,7 @@ gigRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
         const newGig = await new GigModel({ postedBy: postingUser._id, ...req.body }).save()
         if (!newGig) return next(createHttpError(400, `Invalid request.`))
         const populatedNewGig = await GigModel.findById(newGig._id).populate('postedBy', ['firstName', 'lastName'])
-        res.send(populatedNewGig)
+        res.status(201).send(populatedNewGig)
     } catch (error) {
         next(error)
     }
@@ -28,6 +28,17 @@ gigRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFuncti
         next(error)
     }
 })
+
+//get all gigs posted by logged-in user
+gigRouter.get('/my-gigs', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const gigs = await GigModel.find({ postedBy: req.payload?._id }).populate('project', ['title', '_id']).populate('bands', ['name', '_id'])
+        res.send(gigs)
+    } catch (error) {
+        next(error)
+    }
+})
+
 
 gigRouter.get('/:gigId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {

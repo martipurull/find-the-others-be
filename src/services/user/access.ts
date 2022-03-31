@@ -61,20 +61,16 @@ accessRouter.post('/login', async (req: Request, res: Response, next: NextFuncti
     }
 })
 
-accessRouter.post('/refreshToken', async (req: Request, res: Response, next: NextFunction) => {
+accessRouter.post('/refresh-token', async (req: Request, res: Response, next: NextFunction) => {
     try {
-
         const { refreshToken } = req.cookies
-        console.log(refreshToken);
         const { accessJWT, refreshJWT } = await verifyJWTAndRegenerate(refreshToken)
-        console.log(accessJWT, refreshJWT);
-
         res.cookie('accessToken', accessJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
         res.cookie('refreshToken', refreshJWT, { httpOnly: true, secure: NODE_ENV === 'production' ? true : false, sameSite: NODE_ENV === 'production' ? 'none' : undefined })
+        console.log('new tokens sent!')
         res.send('New tokens sent.')
     } catch (error) {
         console.log(error);
-
         next(error)
     }
 })

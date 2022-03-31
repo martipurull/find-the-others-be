@@ -13,7 +13,7 @@ meRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunctio
                 .populate('connections', ['firstName', 'lastName', 'avatar', 'connections'])
                 .populate('connectionsReceived', ['firstName', 'lastName', 'avatar', 'connections'])
                 .populate('memberOf', ['name', 'avatar', 'followedBy'])
-                .populate({ path: 'projects', select: ['title', 'projectImage', 'members'], populate: { path: 'members', select: ['firstName', 'lastName'] } })
+                .populate({ path: 'projects', select: ['title', 'projectImage', 'members'], populate: [{ path: 'members', select: ['firstName', 'lastName'] }, { path: 'bands', select: ['name', 'avatar', 'followedBy'] }] })
                 .populate({ path: 'applications', select: ['title', 'project', 'description', 'instrument', 'genre'], populate: { path: 'project', select: ['title'] } })
                 .populate({ path: 'bandOffers', select: ['name', 'avatar'], populate: { path: 'members', select: ['firstName', 'lastName'] } })
             user ? res.send(user) : next(createHttpError(404, `User with id ${req.payload._id} was not be found.`))
@@ -75,6 +75,8 @@ meRouter.put('/change-password', JWTAuth, async (req: Request, res: Response, ne
             if (!user) return next(createHttpError(404, `User with id ${req.payload._id} was not found.`))
             user.password = newPassword
             await user.save()
+            console.log('changed password');
+
             res.send(user)
         } else {
             next(createHttpError(400, 'Invalid request.'))
