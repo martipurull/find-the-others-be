@@ -47,7 +47,7 @@ export interface IInvitee {
 
 export interface IProject extends Document {
     title: string
-    leader: Types.ObjectId
+    projectAdmins: Types.ObjectId[]
     members: Types.ObjectId[]
     description: string
     projectImage: string

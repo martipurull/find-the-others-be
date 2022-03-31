@@ -5,7 +5,7 @@ const { Schema, model } = mongoose
 
 const ProjectModel = new Schema<IProject>({
     title: { type: String, required: true },
-    leader: { type: Schema.Types.ObjectId, ref: 'User' },
+    projectAdmins: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     description: { type: String, required: true },
     projectImage: { type: String },

@@ -38,9 +38,27 @@ bandRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
     }
 })
 
+//get bands logged-in user follows
+bandRouter.get('/my-bands', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const bandsUserFollows = await BandModel.find({ followedBy: req.payload?._id })
+            .populate('members', ['firstName', 'lastName', 'avatar', 'connections'])
+            .populate('invitationsSent', ['firstName', 'lastName', 'avatar', 'connections'])
+            .populate({ path: 'projects', select: ['title', 'description', 'projectImage', 'members', 'bands'], populate: [{ path: 'members', select: ['firstName', 'lastName'] }, { path: 'bands', select: ['name', 'avatar', 'followedBy', 'noOfFollowers'] }] })
+            .populate('bandAdmins')
+        res.send(bandsUserFollows)
+    } catch (error) {
+        next(error)
+    }
+})
+
 bandRouter.get('/:bandId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const band = await BandModel.findById(req.params.bandId).populate('members', ['firstName', 'lastName']).populate('projects', 'title').populate('bandAdmins', ['firstName', 'lastName'])
+        const band = await BandModel.findById(req.params.bandId)
+            .populate('bandAdmins')
+            .populate('members', ['firstName', 'lastName', 'avatar', 'connections'])
+            .populate('invitationsSent', ['firstName', 'lastName', 'avatar', 'connections'])
+            .populate({ path: 'projects', select: ['title', 'description', 'projectImage', 'members', 'bands'], populate: [{ path: 'members', select: ['firstName', 'lastName'] }, { path: 'bands', select: ['name', 'avatar', 'followedBy', 'noOfFollowers'] }] })
         if (!band) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
         res.send(band)
     } catch (error) {
