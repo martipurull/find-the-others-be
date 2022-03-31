@@ -8,6 +8,7 @@ import ProjectModel from './schema'
 import BandModel from '../band/schema'
 import GigModel from '../gig/schema'
 import taskRouter from './task'
+import mongoose from 'mongoose'
 
 const projectRouter = Router({ mergeParams: true })
 
@@ -73,19 +74,6 @@ projectRouter.put('/:projectId', JWTAuth, async (req: Request, res: Response, ne
     }
 })
 
-// projectRouter.put('/:projectId/drag-card', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const loggedInUserId = req.payload?._id
-//         if (!loggedInUserId) return next(createHttpError(404, `No logged in user was found.`))
-//         const editedProject = await ProjectModel.findByIdAndUpdate(req.params.projectId, {tasks: req.body.tasks}, { new: true })
-//         if (!editedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
-
-//     } catch (error) {
-//         next(error)        
-//     }
-// })
-
-
 projectRouter.delete('/:projectId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const loggedInUserId = req.payload?._id
@@ -106,6 +94,24 @@ projectRouter.delete('/:projectId', JWTAuth, async (req: Request, res: Response,
 })
 
 //write PUT method to allow anyone, not just project admins to drag cards
+projectRouter.put('/:projectId/drag-card', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const loggedInUserId = req.payload?._id
+        if (!loggedInUserId) return next(createHttpError(404, `No logged in user was found.`))
+        const project = await ProjectModel.findById(req.params.projectId)
+        if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
+        if (project.members.map(member => member.toString().includes(loggedInUserId))) {
+            const taskObjectIds = req.body.taskIds.map((taskId: string) => new mongoose.Types.ObjectId(taskId))
+            const editedProject = await ProjectModel.findByIdAndUpdate(req.params.projectId, { tasks: taskObjectIds }, { new: true })
+            if (!editedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
+            res.send(editedProject.tasks)
+        } else {
+            next(createHttpError(403, 'You cannot change tasks in a project you are not a member of.'))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
 
 //get gigs for a project
 projectRouter.get('/:projectId/gigs', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
