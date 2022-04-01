@@ -156,7 +156,7 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Requ
             if (projectWithoutTrackToDate.trackToDate.filename) {
                 await cloudinary.uploader.destroy(projectWithoutTrackToDate.trackToDate.filename)
             }
-            res.send(projectWithoutTrackToDate)
+            res.status(204).send(projectWithoutTrackToDate)
         } else {
             next(createHttpError(403, 'Only a project leader can delete a project track to date.'))
         }
@@ -243,7 +243,7 @@ projectRouter.post('/:projectId/complete-project', JWTAuth, async (req: Request,
     }
 })
 
-projectRouter.delete('/:projectId/leave', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+projectRouter.delete('/:projectId/leave-project', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userWithoutProject = await UserModel.findByIdAndUpdate(req.payload?._id, { $pull: { projects: req.params.projectId } })
         if (!userWithoutProject) return next(createHttpError(404, `User with project id ${req.payload?._id} cannot not be found.`))
