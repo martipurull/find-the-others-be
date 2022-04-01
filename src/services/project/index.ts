@@ -12,13 +12,13 @@ import mongoose from 'mongoose'
 
 const projectRouter = Router({ mergeParams: true })
 
-projectRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+projectRouter.post('/', JWTAuth, parser.single('projectImage'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const loggedInUser = await UserModel.findById(req.payload?._id)
         if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
         const newProject = new ProjectModel({
             ...req.body,
-            projectAdmins: [loggedInUser._id],
+            projectAdmins: [...req.body.projectAdmins, loggedInUser._id],
             members: [...req.body.members, loggedInUser._id],
             projectImage: req.file?.path,
             filename: req.file?.filename
@@ -56,7 +56,7 @@ projectRouter.get('/:projectId', JWTAuth, async (req: Request, res: Response, ne
     }
 })
 
-projectRouter.put('/:projectId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+projectRouter.put('/:projectId', JWTAuth, parser.single('projectImage'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const loggedInUserId = req.payload?._id
         if (!loggedInUserId) return next(createHttpError(404, `No logged in user was found.`))
