@@ -18,12 +18,12 @@ bandRouter.post('/', JWTAuth, parser.single('bandAvatar'), async (req: Request, 
             ...req.body,
             avatar: req.file?.path || `https://ui-avatars.com/api/?name=${name}`,
             filename: req.file?.filename,
-            bandAdmins: [user._id],
-            members: [user._id]
+            bandAdmins: [...req.body.members, user._id],
+            members: [...req.body.members, user._id]
         })
         await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { memberOf: newBand._id } })
         await newBand.save()
-        res.send(newBand)
+        res.status(201).send(newBand)
     } catch (error) {
         next(error)
     }

@@ -116,7 +116,7 @@ projectRouter.put('/:projectId/drag-card', JWTAuth, async (req: Request, res: Re
 //get gigs for a project
 projectRouter.get('/:projectId/gigs', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const gigsForProject = await GigModel.find({ project: req.params.projectId })
+        const gigsForProject = await GigModel.find({ project: req.params.projectId }).populate({ path: 'applications', populate: { path: 'applicant', select: ['firstName', 'lastName', 'avatar', 'connections'] } })
         if (!gigsForProject) return next(createHttpError(404, `Project with id ${req.params.projectId} was not found.`))
         res.send(gigsForProject)
     } catch (error) {
