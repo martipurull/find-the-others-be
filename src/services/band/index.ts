@@ -6,6 +6,7 @@ import JWTAuth from '../../middleware/JWTAuth'
 import createHttpError from 'http-errors'
 import { parser, cloudinary } from '../utils/cloudinary'
 import bandInviteRouter from './invites'
+import mongoose from 'mongoose'
 
 const bandRouter = Router({ mergeParams: true })
 
@@ -14,12 +15,14 @@ bandRouter.post('/', JWTAuth, parser.single('bandAvatar'), async (req: Request, 
         const { name } = req.body
         const user = await UserModel.findById(req.payload?._id)
         if (!user) return next(createHttpError(404, `No user logged in.`))
+        const bandAdminObjectIds = req.body.bandAdminIds.map((bandAdminId: string) => new mongoose.Types.ObjectId(bandAdminId))
+        const memberObjectIds = req.body.memberIds.map((memberId: string) => new mongoose.Types.ObjectId(memberId))
         const newBand = new BandModel({
             ...req.body,
             avatar: req.file?.path || `https://ui-avatars.com/api/?name=${name}`,
             filename: req.file?.filename,
-            bandAdmins: [...req.body.members, user._id],
-            members: [...req.body.members, user._id]
+            bandAdmins: [...bandAdminObjectIds, user._id],
+            members: [...memberObjectIds, user._id]
         })
         await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { memberOf: newBand._id } })
         await newBand.save()
@@ -72,7 +75,15 @@ bandRouter.put('/:bandId', JWTAuth, parser.single('bandImage'), async (req: Requ
         if (isUserBandAdmin) {
             const preEditBand = await BandModel.findById(req.params.bandId)
             if (!preEditBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
-            const body = { ...req.body, avatar: req.file?.path || preEditBand.avatar, filename: req.file?.filename || preEditBand.filename }
+            const bandAdminObjectIds = req.body.bandAdminIds.map((bandAdminId: string) => new mongoose.Types.ObjectId(bandAdminId))
+            const memberObjectIds = req.body.memberIds.map((memberId: string) => new mongoose.Types.ObjectId(memberId))
+            const body = {
+                ...req.body,
+                bandAdmins: bandAdminObjectIds,
+                members: memberObjectIds,
+                avatar: req.file?.path || preEditBand.avatar,
+                filename: req.file?.filename || preEditBand.filename
+            }
             const editedBand = await BandModel.findByIdAndUpdate(req.params.bandId, body, { new: true })
             if (!editedBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
             if (preEditBand.filename && req.file) {

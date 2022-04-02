@@ -4,6 +4,7 @@ import createHttpError from 'http-errors'
 import UserModel from '../user/schema'
 import GigModel from './schema'
 import applicationsRouter from './applications'
+import mongoose from 'mongoose'
 
 const gigRouter = Router({ mergeParams: true })
 
@@ -11,7 +12,14 @@ gigRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
     try {
         const postingUser = await UserModel.findById(req.payload?._id)
         if (!postingUser) return next(createHttpError(404, `User with id ${req.payload?._id} was not found`))
-        const newGig = await new GigModel({ postedBy: postingUser._id, ...req.body }).save()
+        const gigProjectBandObjectIds = req.body.bandIds.map((bandId: string) => new mongoose.Types.ObjectId(bandId))
+        const projectObjectId = new mongoose.Types.ObjectId(req.body.projectId)
+        const newGig = await new GigModel({
+            postedBy: postingUser._id,
+            project: projectObjectId,
+            bands: gigProjectBandObjectIds,
+            ...req.body
+        }).save()
         if (!newGig) return next(createHttpError(400, `Invalid request.`))
         const populatedNewGig = await GigModel.findById(newGig._id).populate('postedBy', ['firstName', 'lastName'])
         res.status(201).send(populatedNewGig)
@@ -22,7 +30,14 @@ gigRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
 
 gigRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const gigs = await GigModel.find().populate('project', ['title', '_id']).populate('bands', ['name', '_id'])
+        const limit: number = parseInt(req.query.limit as string)
+        const page: number = parseInt(req.query.page as string)
+        const gigs = await GigModel.find({ isGigAvailable: true })
+            .populate('project', ['title', '_id'])
+            .populate('bands', ['name', '_id'])
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .skip((page - 1) * limit)
         res.send(gigs)
     } catch (error) {
         next(error)

@@ -16,10 +16,14 @@ projectRouter.post('/', JWTAuth, parser.single('projectImage'), async (req: Requ
     try {
         const loggedInUser = await UserModel.findById(req.payload?._id)
         if (!loggedInUser) return next(createHttpError(404, `No logged in user was found.`))
+        const bandObjectIds = req.body.bands.map((bandId: string) => new mongoose.Types.ObjectId(bandId))
+        const memberObjectIds = req.body.bands.map((memberId: string) => new mongoose.Types.ObjectId(memberId))
+        const projectAdminObjectIds = req.body.bands.map((projectAdminId: string) => new mongoose.Types.ObjectId(projectAdminId))
         const newProject = new ProjectModel({
             ...req.body,
-            projectAdmins: [...req.body.projectAdmins, loggedInUser._id],
-            members: [...req.body.members, loggedInUser._id],
+            projectAdmins: [...projectAdminObjectIds, loggedInUser._id],
+            members: [...memberObjectIds, loggedInUser._id],
+            bands: bandObjectIds,
             projectImage: req.file?.path,
             filename: req.file?.filename
         })
@@ -63,7 +67,16 @@ projectRouter.put('/:projectId', JWTAuth, parser.single('projectImage'), async (
         const project = await ProjectModel.findById(req.params.projectId)
         if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
         if (project.projectAdmins.map(admin => admin.toString()).includes(loggedInUserId)) {
-            const editedProject = await ProjectModel.findByIdAndUpdate(req.params.projectId, req.body, { new: true })
+            const projectAdminObjectIds = req.body.projectAdminIds.map((adminId: string) => new mongoose.Types.ObjectId(adminId))
+            const memberObjectIds = req.body.memberIds.map((memberId: string) => new mongoose.Types.ObjectId(memberId))
+            const bandObjectIds = req.body.bandIds.map((bandId: string) => new mongoose.Types.ObjectId(bandId))
+            const body = {
+                ...req.body,
+                projectAdmins: projectAdminObjectIds,
+                members: memberObjectIds,
+                bands: bandObjectIds
+            }
+            const editedProject = await ProjectModel.findByIdAndUpdate(req.params.projectId, body, { new: true })
             if (!editedProject) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
             res.send(editedProject)
         } else {

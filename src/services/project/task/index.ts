@@ -5,13 +5,16 @@ import { cloudinary, parser } from '../../utils/cloudinary'
 import UserModel from '../../user/schema'
 import ProjectModel from '../schema'
 import TaskModel from '../task/schema'
+import mongoose from 'mongoose'
 
 const taskRouter = Router({ mergeParams: true })
 
 taskRouter.post('/', JWTAuth, parser.single('audioFile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const musicianObjectIds = req.body.musicians.map((musicianId: string) => new mongoose.Types.ObjectId(musicianId))
         const newTask = new TaskModel({
             ...req.body,
+            musicians: musicianObjectIds,
             audioFile: req.file?.path || '',
             filename: req.file?.filename || ''
         })
@@ -26,7 +29,9 @@ taskRouter.post('/', JWTAuth, parser.single('audioFile'), async (req: Request, r
 
 taskRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const project = await ProjectModel.findById(req.params.projectId).populate({ path: 'tasks', populate: { path: 'notes' } })
+        const project = await ProjectModel.findById(req.params.projectId)
+            .populate({ path: 'tasks', populate: { path: 'notes', populate: { path: 'user', select: ['firstName', 'lastName', 'avatar'] } } })
+            .populate('musicians', ['firstName', 'lastName', 'avatar'])
         if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
         res.send(project.tasks)
     } catch (error) {
@@ -36,7 +41,7 @@ taskRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
 
 taskRouter.get('/:taskId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const task = await TaskModel.findById(req.params.taskId).populate('notes')
+        const task = await TaskModel.findById(req.params.taskId)
         if (!task) return next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
         res.send(task)
     } catch (error) {
@@ -51,7 +56,8 @@ taskRouter.put('/:taskId', JWTAuth, parser.single('audioFile'), async (req: Requ
         if (isUserProjectLeader || isUserTaskMusician) {
             const oldTask = await TaskModel.findById(req.params.taskId)
             if (!oldTask) return next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
-            const body = { ...req.body, audioFile: req.file?.path || oldTask.audioFile, filename: req.file?.filename || oldTask.filename }
+            const musicianObjectIds = req.body.musicians.map((musicianId: string) => new mongoose.Types.ObjectId(musicianId))
+            const body = { ...req.body, musicians: musicianObjectIds, audioFile: req.file?.path || oldTask.audioFile, filename: req.file?.filename || oldTask.filename }
             const editedTask = await TaskModel.findByIdAndUpdate(req.params.taskId, body, { new: true })
             if (!editedTask) return next(createHttpError(404, `Task with id ${req.params.taskId} cannot be found.`))
             if (oldTask.filename && req.file) {
@@ -107,9 +113,13 @@ taskRouter.put('/:taskId/notes/:noteId', JWTAuth, async (req: Request, res: Resp
         const noteIndex = task.notes?.findIndex(n => n._id.toString() === req.params.noteId)
         console.log(noteIndex)
         if (noteIndex && noteIndex !== -1) {
-            task.notes![noteIndex] = { ...task.notes![noteIndex].toObject(), ...req.body }
-            await task.save()
-            res.send(task)
+            if (task.notes![noteIndex].sender._id.toString() === req.payload?._id) {
+                task.notes![noteIndex] = { ...task.notes![noteIndex].toObject(), ...req.body }
+                await task.save()
+                res.send(task)
+            } else {
+                next(createHttpError(403, "You cannot edit somebody else's note."))
+            }
         } else {
             next(createHttpError(404, `Note cannot be found.`))
         }
@@ -120,8 +130,16 @@ taskRouter.put('/:taskId/notes/:noteId', JWTAuth, async (req: Request, res: Resp
 
 taskRouter.delete('/:taskId/notes/:noteId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const taskWithoutNote = await TaskModel.findByIdAndUpdate(req.params.taskId, { $pull: { notes: { _id: req.params.noteId } } }, { new: true })
-        taskWithoutNote ? res.send(taskWithoutNote) : next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
+        const task = await TaskModel.findById(req.params.taskId)
+        if (!task) return next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
+        const noteIndex = task.notes?.findIndex(n => n._id.toString() === req.params.noteId)
+        console.log(noteIndex)
+        if (noteIndex && noteIndex !== -1) {
+            const taskWithoutNote = await TaskModel.findByIdAndUpdate(req.params.taskId, { $pull: { notes: { _id: req.params.noteId } } }, { new: true })
+            taskWithoutNote ? res.send(taskWithoutNote) : next(createHttpError(404, `Task with id ${req.params.taskId} was not found.`))
+        } else {
+            next(createHttpError(403, "You cannot delete somebody else's note."))
+        }
     } catch (error) {
         next(error)
     }
