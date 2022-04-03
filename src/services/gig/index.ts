@@ -32,13 +32,26 @@ gigRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFuncti
     try {
         const limit: number = parseInt(req.query.limit as string)
         const page: number = parseInt(req.query.page as string)
-        const gigs = await GigModel.find({ isGigAvailable: true })
-            .populate('project', ['title', '_id'])
-            .populate('bands', ['name', '_id'])
-            .sort({ createdAt: -1 })
-            .limit(limit)
-            .skip((page - 1) * limit)
-        res.send(gigs)
+        const searchTerm: string = req.query.search as string
+        if (searchTerm) {
+            const gigs = await GigModel.find({ $and: [{ isGigAvailable: true }, { $or: [{ title: searchTerm }, { description: searchTerm }, { genre: searchTerm }, { instrument: searchTerm }, { otherInstrument: searchTerm }, { specifics: searchTerm }] }] })
+                .populate({ path: 'project', select: ['title', 'projectImage', 'members', 'bands', '_id'], populate: [{ path: 'members', select: ['firstName', 'lastName'] }, { path: 'bands', select: ['_id', 'name', 'avatar', 'followedBy', 'noOfFollowers'] }] })
+                .populate('bands', ['name', 'avatar', 'followedBy', 'noOfFollowers', '_id'])
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .skip((page - 1) * limit)
+            const noOfGigsInDb = await GigModel.countDocuments({ isGigAvailable: true })
+            res.send({ gigs, noOfGigsInDb })
+        } else {
+            const gigs = await GigModel.find({ isGigAvailable: true })
+                .populate({ path: 'project', select: ['title', 'projectImage', 'members', 'bands', '_id'], populate: [{ path: 'members', select: ['firstName', 'lastName'] }, { path: 'bands', select: ['_id', 'name', 'avatar', 'followedBy', 'noOfFollowers'] }] })
+                .populate('bands', ['name', 'avatar', 'followedBy', 'noOfFollowers', '_id'])
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .skip((page - 1) * limit)
+            const noOfGigsInDb = await GigModel.countDocuments({ isGigAvailable: true })
+            res.send({ gigs, noOfGigsInDb })
+        }
     } catch (error) {
         next(error)
     }
