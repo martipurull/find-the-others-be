@@ -48,21 +48,16 @@ postRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
             if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
             res.send(project.projectPosts)
         } else {
-            const followedBands = await BandModel.find({ _id: { $in: loggedInUser.followedBands } }).populate('members')
-            const followedBandsMembers = followedBands.map(band => band.members)
-            const followedProjects = await ProjectModel.find({ _id: { $in: loggedInUser.projects } })
-            const followedProjectsMembers = followedProjects.map(project => project.members)
             const posts = await PostModel.find({
                 $or: [
-                    { sender: { $in: loggedInUser.connections } },
-                    { sender: { $in: followedBandsMembers } },
-                    { sender: { $in: followedProjectsMembers } },
+                    { sender: { $in: loggedInUser.connections.map(connection => connection._id) } },
                     { sender: loggedInUser }
                 ]
             })
                 .sort({ createdAt: -1 })
                 .populate('sender', ['firstName', 'lastName', 'avatar', 'memberOf'])
-                .populate({ path: 'comments', populate: { path: 'sender', select: ['firstName', 'lastName', 'avatar'] } })
+                .populate({ path: 'comments', sort: { createdAt: -1 }, populate: { path: 'sender', select: ['firstName', 'lastName', 'avatar'] } })
+                .limit(100)
             const postsForUser = posts.filter(p => p.isForProject === false)
             res.send(postsForUser)
         }

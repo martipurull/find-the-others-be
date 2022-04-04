@@ -4,6 +4,7 @@ import { IBand, ITrack } from '../../types'
 const { Schema, model } = mongoose
 
 const Track = new Schema<ITrack>({
+    trackName: String,
     track: {
         audiofile: String,
         filename: String

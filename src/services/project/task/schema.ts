@@ -12,7 +12,7 @@ const TaskModel = new Schema<ITask>({
     status: { type: String, required: true, enum: ['todo', 'doing', 'done'], default: 'todo' },
     musicians: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     title: { type: String, required: true },
-    description: { type: String, required: true },
+    description: String,
     audioFile: String,
     filename: String,
     notes: { type: [NoteSchema], default: [] }

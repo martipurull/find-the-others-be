@@ -15,8 +15,10 @@ bandRouter.post('/', JWTAuth, parser.single('bandAvatar'), async (req: Request, 
         const { name } = req.body
         const user = await UserModel.findById(req.payload?._id)
         if (!user) return next(createHttpError(404, `No user logged in.`))
-        const bandAdminObjectIds = req.body.bandAdminIds.map((bandAdminId: string) => new mongoose.Types.ObjectId(bandAdminId))
-        const memberObjectIds = req.body.memberIds.map((memberId: string) => new mongoose.Types.ObjectId(memberId))
+        let bandAdminObjectIds = []
+        let memberObjectIds = []
+        if (req.body.bandAdminIds) bandAdminObjectIds = JSON.parse(req.body.bandAdminIds).map((bandAdminId: string) => new mongoose.Types.ObjectId(bandAdminId))
+        if (req.body.memberIds) memberObjectIds = JSON.parse(req.body.memberIds).map((memberId: string) => new mongoose.Types.ObjectId(memberId))
         const newBand = new BandModel({
             ...req.body,
             avatar: req.file?.path || `https://ui-avatars.com/api/?name=${name}`,
@@ -34,15 +36,27 @@ bandRouter.post('/', JWTAuth, parser.single('bandAvatar'), async (req: Request, 
 
 bandRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const bands = await BandModel.find().populate('members', ['firstName', 'lastName', '_id'])
+        const bands = await BandModel.find().populate('members', ['firstName', 'lastName', 'avatar', 'connections', '_id'])
         res.send(bands)
     } catch (error) {
         next(error)
     }
 })
 
-//get bands logged-in user follows
+//get bands use is a member of
 bandRouter.get('/my-bands', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.payload?._id) return next(createHttpError(404, `No logged in user was found.`))
+        const bands = await BandModel.find({ members: req.payload._id }).populate('members', ['firstName', 'lastName', 'avatar', 'connections', '_id'])
+        res.send(bands)
+    } catch (error) {
+        next(error)
+    }
+})
+
+
+//get bands logged-in user follows
+bandRouter.get('/followed-bands', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const bandsUserFollows = await BandModel.find({ followedBy: req.payload?._id })
             .populate('members', ['firstName', 'lastName', 'avatar', 'connections'])
@@ -56,6 +70,7 @@ bandRouter.get('/my-bands', JWTAuth, async (req: Request, res: Response, next: N
 })
 
 bandRouter.get('/:bandId', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+
     try {
         const band = await BandModel.findById(req.params.bandId)
             .populate('bandAdmins')
@@ -75,8 +90,10 @@ bandRouter.put('/:bandId', JWTAuth, parser.single('bandImage'), async (req: Requ
         if (isUserBandAdmin) {
             const preEditBand = await BandModel.findById(req.params.bandId)
             if (!preEditBand) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
-            const bandAdminObjectIds = req.body.bandAdminIds.map((bandAdminId: string) => new mongoose.Types.ObjectId(bandAdminId))
-            const memberObjectIds = req.body.memberIds.map((memberId: string) => new mongoose.Types.ObjectId(memberId))
+            let bandAdminObjectIds = []
+            if (req.body.bandAdminIds) bandAdminObjectIds = JSON.parse(req.body.bandAdminIds).map((bandAdminId: string) => new mongoose.Types.ObjectId(bandAdminId))
+            let memberObjectIds = []
+            if (req.body.memberIds) memberObjectIds = JSON.parse(req.body.memberIds).map((memberId: string) => new mongoose.Types.ObjectId(memberId))
             const body = {
                 ...req.body,
                 bandAdmins: bandAdminObjectIds,
@@ -127,10 +144,14 @@ bandRouter.post('/:bandId/follow', JWTAuth, async (req: Request, res: Response, 
         if (userFollowsBand) {
             const unfollowedBand = await BandModel.findByIdAndUpdate(req.params.bandId, { $pull: { followedBy: user._id } })
             if (!unfollowedBand) return next(createHttpError(404, `Post with id ${req.params.bandId} does not exist.`))
+            const userWithoutBand = await UserModel.findByIdAndUpdate(req.payload?._id, { $pull: { followedBands: unfollowedBand._id } })
+            if (!userWithoutBand) return next(createHttpError(404, `User with id ${req.payload?._id} does not exist.`))
             res.send("You don't follow this band anymore.")
         } else {
             const followedBand = await BandModel.findByIdAndUpdate(req.params.bandId, { $push: { followedBy: user._id } })
             if (!followedBand) return next(createHttpError(404, `Post with id ${req.params.bandId} does not exist.`))
+            const userWithBand = await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { followedBands: followedBand._id } })
+            if (!userWithBand) return next(createHttpError(404, `User with id ${req.payload?._id} does not exist.`))
             res.send('You follow this band.')
         }
     } catch (error) {
@@ -151,7 +172,7 @@ bandRouter.post('/:bandId/release-track', JWTAuth, async (req: Request, res: Res
             if (!moveTracks) return next(createHttpError(404, `Band with id ${req.params.bandId} cannot be found.`))
             res.send(moveTracks)
         } else {
-            next(createHttpError(401, 'You cannot release songs for bands you are not an admin of.'))
+            next(createHttpError(403, 'You cannot release songs for bands you are not an admin of.'))
         }
     } catch (error) {
         next(error)

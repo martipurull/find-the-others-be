@@ -12,12 +12,12 @@ gigRouter.post('/', JWTAuth, async (req: Request, res: Response, next: NextFunct
     try {
         const postingUser = await UserModel.findById(req.payload?._id)
         if (!postingUser) return next(createHttpError(404, `User with id ${req.payload?._id} was not found`))
-        const gigProjectBandObjectIds = req.body.bandIds.map((bandId: string) => new mongoose.Types.ObjectId(bandId))
-        const projectObjectId = new mongoose.Types.ObjectId(req.body.projectId)
+        // const gigProjectBandObjectIds = req.body.bandIds.map((bandId: string) => new mongoose.Types.ObjectId(bandId))
+        // const projectObjectId = new mongoose.Types.ObjectId(req.body.projectId)
         const newGig = await new GigModel({
             postedBy: postingUser._id,
-            project: projectObjectId,
-            bands: gigProjectBandObjectIds,
+            project: req.body.projectId,
+            bands: req.body.bandIds,
             ...req.body
         }).save()
         if (!newGig) return next(createHttpError(400, `Invalid request.`))
@@ -40,7 +40,7 @@ gigRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFuncti
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .skip((page - 1) * limit)
-            const noOfGigsInDb = await GigModel.countDocuments({ isGigAvailable: true })
+            const noOfGigsInDb = await GigModel.countDocuments({ $and: [{ isGigAvailable: true }, { $or: [{ title: searchTerm }, { description: searchTerm }, { genre: searchTerm }, { instrument: searchTerm }, { otherInstrument: searchTerm }, { specifics: searchTerm }] }] })
             res.send({ gigs, noOfGigsInDb })
         } else {
             const gigs = await GigModel.find({ isGigAvailable: true })

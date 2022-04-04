@@ -140,6 +140,7 @@ export interface IBand extends Document {
 }
 
 export interface ITrack extends Document {
+    trackName: string
     track: {
         audiofile: string
         filename: string
