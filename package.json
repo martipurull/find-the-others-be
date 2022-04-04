@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --watchAll",
-    "build": "tsc",
     "dev": "ts-node-dev ./src",
     "start": "node ./build"
   },
