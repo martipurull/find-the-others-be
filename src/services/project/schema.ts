@@ -20,7 +20,7 @@ const ProjectModel = new Schema<IProject>({
         filename: String
     },
     trackName: String,
-    bands: [{ type: Schema.Types.ObjectId, ref: 'Band', required: true }],
+    bands: [{ type: Schema.Types.ObjectId, ref: 'Band' }],
     projectPosts: [{ type: Schema.Types.ObjectId, ref: 'Post' }],
     tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }],
     isActive: { type: Boolean, required: true, default: true }

@@ -9,6 +9,7 @@ import BandModel from '../band/schema'
 import GigModel from '../gig/schema'
 import taskRouter from './task'
 import mongoose from 'mongoose'
+import { ITrack } from '../../types'
 
 const projectRouter = Router({ mergeParams: true })
 
@@ -24,8 +25,8 @@ projectRouter.post('/', JWTAuth, parser.single('projectImage'), async (req: Requ
         if (req.body.bandIds) bandObjectIds = JSON.parse(req.body.bandIds).map((bandId: string) => new mongoose.Types.ObjectId(bandId))
         const newProject = new ProjectModel({
             ...req.body,
-            projectAdmins: [...projectAdminObjectIds, loggedInUser._id],
-            members: [...memberObjectIds, loggedInUser._id],
+            projectAdmins: projectAdminObjectIds,
+            members: memberObjectIds,
             bands: bandObjectIds,
             projectImage: req.file?.path,
             filename: req.file?.filename
@@ -240,6 +241,7 @@ projectRouter.post('/:projectId/send-track-to-band', JWTAuth, async (req: Reques
                 cover: { image: isUserProjectLeader.trackCover.image, filename: isUserProjectLeader.trackCover.filename }
             }
             isUserProjectLeader.bands.map(async band => await BandModel.findByIdAndUpdate(band._id, { $push: { readyTracks: trackToSend } }))
+
             res.send({ sentTrack: trackToSend, project: isUserProjectLeader.title, recipients: isUserProjectLeader.bands })
         } else {
             next(createHttpError(403, 'Only a project leader can send the completed track to the project bands.'))
