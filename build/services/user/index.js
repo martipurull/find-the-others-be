@@ -25,7 +25,8 @@ userRouter.use('/me', me_1.default);
 userRouter.use('/connect', connections_1.default);
 userRouter.post('/findUsers', JWTAuth_1.default, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const users = yield schema_1.default.find({ $or: [{ email: req.body.searchTerm }, { firstName: req.body.searchTerm }, { lastName: req.body.searchTerm }, { username: req.body.searchTerm }] });
+        const users = yield schema_1.default.find({ $or: [{ email: req.body.searchTerm }, { firstName: req.body.searchTerm }, { lastName: req.body.searchTerm }, { username: req.body.searchTerm }] })
+            .populate({ path: 'memberOf', select: ['name', 'avatar', 'followedBy', 'noOfFollowers'] });
         if (users.length === 0)
             return next((0, http_errors_1.default)(404, `No users found`));
         res.send(users);

@@ -16,8 +16,18 @@ const post_1 = __importDefault(require("./services/post"));
 const band_1 = __importDefault(require("./services/band"));
 const project_1 = __importDefault(require("./services/project"));
 const server = (0, express_1.default)();
-const whitelist = ['http://localhost:3000'];
-const corsOptions = { origin: whitelist, credentials: true };
+const whitelist = ['http://localhost:3000', 'https://find-the-others-fe.vercel.app'];
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+};
 passport_1.default.use('facebook', facebookOAuth_1.default);
 passport_1.default.use('google', googleOAuth_1.default);
 server.use((0, cors_1.default)(corsOptions));

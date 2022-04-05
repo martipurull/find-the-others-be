@@ -21,7 +21,8 @@ const ProjectModel = new Schema({
         image: String,
         filename: String
     },
-    bands: [{ type: Schema.Types.ObjectId, ref: 'Band', required: true }],
+    trackName: String,
+    bands: [{ type: Schema.Types.ObjectId, ref: 'Band' }],
     projectPosts: [{ type: Schema.Types.ObjectId, ref: 'Post' }],
     tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }],
     isActive: { type: Boolean, required: true, default: true }

@@ -21,7 +21,7 @@ const BandModel = new Schema({
     bandAdmins: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     invitationsSent: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    readyTracks: [Track],
+    readyTracks: { type: [Track], default: [] },
     releasedTracks: [Track],
     projects: [{ type: Schema.Types.ObjectId, ref: 'Project' }],
     blurb: { type: String, required: true },
@@ -30,5 +30,5 @@ const BandModel = new Schema({
     filename: String,
     followedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true, toJSON: { virtuals: true } });
-BandModel.virtual('noOfFollowers').get(function () { return this.followedBy.length; });
+// BandModel.virtual('noOfFollowers').get(function (this: IBand) { return this.followedBy.length })
 exports.default = model('Band', BandModel);

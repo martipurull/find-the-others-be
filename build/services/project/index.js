@@ -39,7 +39,7 @@ projectRouter.post('/', JWTAuth_1.default, cloudinary_1.parser.single('projectIm
         let bandObjectIds = [];
         if (req.body.bandIds)
             bandObjectIds = JSON.parse(req.body.bandIds).map((bandId) => new mongoose_1.default.Types.ObjectId(bandId));
-        const newProject = new schema_2.default(Object.assign(Object.assign({}, req.body), { projectAdmins: [...projectAdminObjectIds, loggedInUser._id], members: [...memberObjectIds, loggedInUser._id], bands: bandObjectIds, projectImage: (_b = req.file) === null || _b === void 0 ? void 0 : _b.path, filename: (_c = req.file) === null || _c === void 0 ? void 0 : _c.filename }));
+        const newProject = new schema_2.default(Object.assign(Object.assign({}, req.body), { projectAdmins: projectAdminObjectIds, members: memberObjectIds, bands: bandObjectIds, projectImage: (_b = req.file) === null || _b === void 0 ? void 0 : _b.path, filename: (_c = req.file) === null || _c === void 0 ? void 0 : _c.filename }));
         newProject.save();
         yield schema_1.default.findByIdAndUpdate((_d = req.payload) === null || _d === void 0 ? void 0 : _d._id, { $push: { projects: newProject._id } });
         res.status(201).send(newProject);
@@ -181,7 +181,7 @@ projectRouter.post('/:projectId/add-trackToDate', JWTAuth_1.default, cloudinary_
         if (isUserProjectLeader) {
             if (req.file) {
                 const trackToDate = { audiofile: (_k = req.file) === null || _k === void 0 ? void 0 : _k.path, filename: (_l = req.file) === null || _l === void 0 ? void 0 : _l.filename };
-                const projectWithNewTrackToDate = yield schema_2.default.findByIdAndUpdate(req.params.projectId, { trackToDate: trackToDate }, { new: true });
+                const projectWithNewTrackToDate = yield schema_2.default.findByIdAndUpdate(req.params.projectId, { trackToDate: trackToDate, trackName: req.body.trackName }, { new: true });
                 if (!projectWithNewTrackToDate)
                     return next((0, http_errors_1.default)(404, `Project with id ${req.params.projectId} could not be found.`));
                 res.send(projectWithNewTrackToDate);
@@ -221,14 +221,14 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth_1.default, (req, 
     }
 }));
 //add and remove trackCover
-projectRouter.post('/:projectId/add-trackCover', JWTAuth_1.default, cloudinary_1.parser.single('trackCover'), (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+projectRouter.post('/:projectId/add-trackCover', JWTAuth_1.default, cloudinary_1.parser.single('coverFile'), (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _o, _p, _q;
     try {
         const isUserProjectLeader = yield schema_2.default.findOne({ $and: [{ _id: req.params.projectId }, { projectAdmins: (_o = req.payload) === null || _o === void 0 ? void 0 : _o._id }] });
         if (isUserProjectLeader) {
             if (req.file) {
                 const trackCover = { image: (_p = req.file) === null || _p === void 0 ? void 0 : _p.path, filename: (_q = req.file) === null || _q === void 0 ? void 0 : _q.filename };
-                const projectWithNewTrackCover = yield schema_2.default.findByIdAndUpdate(req.params.projectId, { trackCover: trackCover }, { new: true });
+                const projectWithNewTrackCover = yield schema_2.default.findByIdAndUpdate(req.params.projectId, { trackCover: trackCover, trackName: req.body.trackName }, { new: true });
                 if (!projectWithNewTrackCover)
                     return next((0, http_errors_1.default)(404, `Project with id ${req.params.projectId} could not be found.`));
                 res.send(projectWithNewTrackCover);
@@ -274,6 +274,7 @@ projectRouter.post('/:projectId/send-track-to-band', JWTAuth_1.default, (req, re
         const isUserProjectLeader = yield schema_2.default.findOne({ $and: [{ _id: req.params.projectId }, { projectAdmins: (_s = req.payload) === null || _s === void 0 ? void 0 : _s._id }] });
         if (isUserProjectLeader) {
             const trackToSend = {
+                trackName: isUserProjectLeader.trackName,
                 track: { audiofile: isUserProjectLeader.trackToDate.audiofile, filename: isUserProjectLeader.trackToDate.filename },
                 cover: { image: isUserProjectLeader.trackCover.image, filename: isUserProjectLeader.trackCover.filename }
             };

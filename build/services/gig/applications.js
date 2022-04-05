@@ -19,17 +19,19 @@ const schema_1 = __importDefault(require("../user/schema"));
 const schema_2 = __importDefault(require("./schema"));
 const schema_3 = __importDefault(require("../project/schema"));
 const email_1 = require("../utils/email");
+const cloudinary_1 = require("../utils/cloudinary");
 const applicationsRouter = (0, express_1.Router)({ mergeParams: true });
-applicationsRouter.post('/apply', JWTAuth_1.default, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+applicationsRouter.post('/apply', JWTAuth_1.default, cloudinary_1.parser.single('audioFile'), (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e;
     try {
-        const application = { applicant: (_a = req.payload) === null || _a === void 0 ? void 0 : _a._id, submission: req.body.submission };
+        const submission = { audioFile: (_a = req.file) === null || _a === void 0 ? void 0 : _a.path, filename: (_b = req.file) === null || _b === void 0 ? void 0 : _b.filename, notes: req.body.notes };
+        const application = { applicant: (_c = req.payload) === null || _c === void 0 ? void 0 : _c._id, submission };
         const gig = yield schema_2.default.findByIdAndUpdate(req.params.gigId, { $push: { applications: application } });
         if (!gig)
             return next((0, http_errors_1.default)(404, `Gig with id ${req.params.gigId} could not be found.`));
-        const applicant = yield schema_1.default.findByIdAndUpdate((_b = req.payload) === null || _b === void 0 ? void 0 : _b._id, { $push: { applications: gig._id } });
+        const applicant = yield schema_1.default.findByIdAndUpdate((_d = req.payload) === null || _d === void 0 ? void 0 : _d._id, { $push: { applications: req.params.gigId } });
         if (!applicant)
-            return next((0, http_errors_1.default)(404, `User with id ${(_c = req.payload) === null || _c === void 0 ? void 0 : _c._id} could not be found.`));
+            return next((0, http_errors_1.default)(404, `User with id ${(_e = req.payload) === null || _e === void 0 ? void 0 : _e._id} could not be found.`));
         res.send(`You have applied for gig with id ${req.params.gigId}.`);
     }
     catch (error) {
@@ -37,11 +39,11 @@ applicationsRouter.post('/apply', JWTAuth_1.default, (req, res, next) => __await
     }
 }));
 applicationsRouter.post('/withdraw', JWTAuth_1.default, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d, _e;
+    var _f, _g;
     try {
-        const applicant = yield schema_1.default.findByIdAndUpdate((_d = req.payload) === null || _d === void 0 ? void 0 : _d._id, { $pull: { applications: req.params.gigId } });
+        const applicant = yield schema_1.default.findByIdAndUpdate((_f = req.payload) === null || _f === void 0 ? void 0 : _f._id, { $pull: { applications: req.params.gigId } });
         if (!applicant)
-            return next((0, http_errors_1.default)(404, `User with id ${(_e = req.payload) === null || _e === void 0 ? void 0 : _e._id} could not be found.`));
+            return next((0, http_errors_1.default)(404, `User with id ${(_g = req.payload) === null || _g === void 0 ? void 0 : _g._id} could not be found.`));
         const gig = yield schema_2.default.findByIdAndUpdate(req.params.gigId, { $pull: { applications: { applicant: applicant._id } } });
         if (!gig)
             return next((0, http_errors_1.default)(404, `Gig with id ${req.params.gigId} could not be found.`));
@@ -52,17 +54,17 @@ applicationsRouter.post('/withdraw', JWTAuth_1.default, (req, res, next) => __aw
     }
 }));
 applicationsRouter.post('/decline', JWTAuth_1.default, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f, _g, _h;
+    var _h, _j, _k;
     try {
         const gigToCheck = yield schema_2.default.findById(req.params.gigId);
-        if ((gigToCheck === null || gigToCheck === void 0 ? void 0 : gigToCheck.postedBy.toString()) === ((_f = req.payload) === null || _f === void 0 ? void 0 : _f._id)) {
+        if ((gigToCheck === null || gigToCheck === void 0 ? void 0 : gigToCheck.postedBy.toString()) === ((_h = req.payload) === null || _h === void 0 ? void 0 : _h._id)) {
             const applicantId = req.body.applicantId;
             const rejectedApplicant = yield schema_1.default.findById(applicantId);
             if (!rejectedApplicant)
                 return next((0, http_errors_1.default)(404, `User with id ${applicantId} could not be found.`));
-            const decliningUser = yield schema_1.default.findByIdAndUpdate((_g = req.payload) === null || _g === void 0 ? void 0 : _g._id, { $pull: { applications: req.params.gigId } });
+            const decliningUser = yield schema_1.default.findByIdAndUpdate((_j = req.payload) === null || _j === void 0 ? void 0 : _j._id, { $pull: { applications: req.params.gigId } });
             if (!decliningUser)
-                return next((0, http_errors_1.default)(404, `User with id ${(_h = req.payload) === null || _h === void 0 ? void 0 : _h._id} could not be found.`));
+                return next((0, http_errors_1.default)(404, `User with id ${(_k = req.payload) === null || _k === void 0 ? void 0 : _k._id} could not be found.`));
             const gig = yield schema_2.default.findByIdAndUpdate(req.params.gigId, { $pull: { applications: { applicant: rejectedApplicant._id } } });
             if (!gig)
                 return next((0, http_errors_1.default)(404, `Gig with id ${req.params.gigId} could not be found.`));
@@ -81,12 +83,12 @@ applicationsRouter.post('/decline', JWTAuth_1.default, (req, res, next) => __awa
     }
 }));
 applicationsRouter.post('/accept', JWTAuth_1.default, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _j, _k, _l;
+    var _l, _m, _o;
     try {
         const gigToCheck = yield schema_2.default.findById(req.params.gigId);
-        if ((gigToCheck === null || gigToCheck === void 0 ? void 0 : gigToCheck.postedBy.toString()) === ((_j = req.payload) === null || _j === void 0 ? void 0 : _j._id)) {
+        if ((gigToCheck === null || gigToCheck === void 0 ? void 0 : gigToCheck.postedBy.toString()) === ((_l = req.payload) === null || _l === void 0 ? void 0 : _l._id)) {
             const { applicantId } = req.body;
-            const acceptingUser = yield schema_1.default.findById((_k = req.payload) === null || _k === void 0 ? void 0 : _k._id);
+            const acceptingUser = yield schema_1.default.findById((_m = req.payload) === null || _m === void 0 ? void 0 : _m._id);
             const gig = yield schema_2.default.findByIdAndUpdate(req.params.gigId, { isGigAvailable: false });
             if (!gig)
                 return next((0, http_errors_1.default)(404, `Gig with id ${req.params.gigId} could not be found.`));
@@ -95,7 +97,7 @@ applicationsRouter.post('/accept', JWTAuth_1.default, (req, res, next) => __awai
                 return next((0, http_errors_1.default)(404, `Project with id ${gig.project._id} could not be found.`));
             const successfulApplicant = yield schema_1.default.findByIdAndUpdate(applicantId, { $pull: { applications: req.params.gigId }, $push: { projects: project._id } });
             if (!successfulApplicant)
-                return next((0, http_errors_1.default)(404, `Applicant with id ${(_l = req.payload) === null || _l === void 0 ? void 0 : _l._id} could not be found.`));
+                return next((0, http_errors_1.default)(404, `Applicant with id ${(_o = req.payload) === null || _o === void 0 ? void 0 : _o._id} could not be found.`));
             yield (0, email_1.sendGigConfirmation)(acceptingUser, successfulApplicant, gig, project);
             const remainingApplications = gig.applications.filter(application => application.applicant.toString() !== applicantId);
             const remainingApplicantsIds = remainingApplications.map(application => application.applicant._id.toString());
