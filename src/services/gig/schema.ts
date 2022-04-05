@@ -20,7 +20,7 @@ const GigModel = new Schema<IGig>({
     description: { type: String, required: true },
     genre: { type: String, required: true },
     hours: { type: Number, required: true },
-    instrument: { type: String, required: true, enum: ['guitar', 'bass', 'drums', 'percussion', 'strings', 'brass', 'wind', 'vocals', 'keys'] },
+    instrument: { type: String, required: true, enum: ['bass', 'brass', 'drums', 'guitar', 'keys', 'mastering', 'mixing', 'percussion', 'strings', 'vocals', 'wind'] },
     otherInstrument: String,
     specifics: String,
     applications: [ApplicationSchema],

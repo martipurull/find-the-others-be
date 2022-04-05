@@ -154,7 +154,7 @@ projectRouter.post('/:projectId/add-trackToDate', JWTAuth, parser.single('audioF
         if (isUserProjectLeader) {
             if (req.file) {
                 const trackToDate = { audiofile: req.file?.path, filename: req.file?.filename }
-                const projectWithNewTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackToDate: trackToDate }, { new: true })
+                const projectWithNewTrackToDate = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackToDate: trackToDate, trackName: req.body.trackName }, { new: true })
                 if (!projectWithNewTrackToDate) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
                 res.send(projectWithNewTrackToDate)
             } else {
@@ -189,13 +189,13 @@ projectRouter.delete('/:projectId/remove-trackToDate', JWTAuth, async (req: Requ
 
 //add and remove trackCover
 
-projectRouter.post('/:projectId/add-trackCover', JWTAuth, parser.single('trackCover'), async (req: Request, res: Response, next: NextFunction) => {
+projectRouter.post('/:projectId/add-trackCover', JWTAuth, parser.single('coverFile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { projectAdmins: req.payload?._id }] })
         if (isUserProjectLeader) {
             if (req.file) {
                 const trackCover = { image: req.file?.path, filename: req.file?.filename }
-                const projectWithNewTrackCover = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackCover: trackCover }, { new: true })
+                const projectWithNewTrackCover = await ProjectModel.findByIdAndUpdate(req.params.projectId, { trackCover: trackCover, trackName: req.body.trackName }, { new: true })
                 if (!projectWithNewTrackCover) return next(createHttpError(404, `Project with id ${req.params.projectId} could not be found.`))
                 res.send(projectWithNewTrackCover)
             } else {
@@ -235,6 +235,7 @@ projectRouter.post('/:projectId/send-track-to-band', JWTAuth, async (req: Reques
         const isUserProjectLeader = await ProjectModel.findOne({ $and: [{ _id: req.params.projectId }, { projectAdmins: req.payload?._id }] })
         if (isUserProjectLeader) {
             const trackToSend = {
+                trackName: isUserProjectLeader.trackName,
                 track: { audiofile: isUserProjectLeader.trackToDate.audiofile, filename: isUserProjectLeader.trackToDate.filename },
                 cover: { image: isUserProjectLeader.trackCover.image, filename: isUserProjectLeader.trackCover.filename }
             }

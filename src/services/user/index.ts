@@ -15,6 +15,7 @@ userRouter.use('/connect', connectionRouter)
 userRouter.post('/findUsers', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const users = await UserModel.find({ $or: [{ email: req.body.searchTerm }, { firstName: req.body.searchTerm }, { lastName: req.body.searchTerm }, { username: req.body.searchTerm }] })
+            .populate({ path: 'memberOf', select: ['name', 'avatar', 'followedBy', 'noOfFollowers'] })
         if (users.length === 0) return next(createHttpError(404, `No users found`))
         res.send(users)
     } catch (error) {

@@ -61,6 +61,7 @@ export interface IProject extends Document {
         image: string
         filename: string
     }
+    trackName: string
     filename: string
     bands: Types.ObjectId[]
     projectPosts: Types.ObjectId[]

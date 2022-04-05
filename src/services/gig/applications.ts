@@ -5,15 +5,17 @@ import UserModel from '../user/schema'
 import GigModel from './schema'
 import ProjectModel from '../project/schema'
 import { sendGigConfirmation, sendGigRejection, sendGigRejections } from '../utils/email'
+import { cloudinary, parser } from '../utils/cloudinary'
 
 const applicationsRouter = Router({ mergeParams: true })
 
-applicationsRouter.post('/apply', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
+applicationsRouter.post('/apply', JWTAuth, parser.single('audioFile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const application = { applicant: req.payload?._id, submission: req.body.submission }
+        const submission = { audioFile: req.file?.path, filename: req.file?.filename, notes: req.body.notes }
+        const application = { applicant: req.payload?._id, submission }
         const gig = await GigModel.findByIdAndUpdate(req.params.gigId, { $push: { applications: application } })
         if (!gig) return next(createHttpError(404, `Gig with id ${req.params.gigId} could not be found.`))
-        const applicant = await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { applications: gig._id } })
+        const applicant = await UserModel.findByIdAndUpdate(req.payload?._id, { $push: { applications: req.params.gigId } })
         if (!applicant) return next(createHttpError(404, `User with id ${req.payload?._id} could not be found.`))
         res.send(`You have applied for gig with id ${req.params.gigId}.`)
     } catch (error) {

@@ -14,7 +14,7 @@ meRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunctio
                 .populate('connectionsReceived', ['firstName', 'lastName', 'avatar', 'connections'])
                 .populate('memberOf', ['name', 'avatar', 'followedBy'])
                 .populate({ path: 'projects', select: ['title', 'projectImage', 'members'], populate: [{ path: 'members', select: ['firstName', 'lastName'] }, { path: 'bands', select: ['name', 'avatar', 'followedBy'] }] })
-                .populate({ path: 'applications', select: ['title', 'project', 'description', 'instrument', 'genre'], populate: { path: 'project', select: ['title'] } })
+                .populate({ path: 'applications', select: ['title', 'project', 'description', 'instrument', 'genre', 'hours'], populate: { path: 'project', select: ['title'] } })
                 .populate({ path: 'bandOffers', select: ['name', 'avatar'], populate: { path: 'members', select: ['firstName', 'lastName'] } })
             user ? res.send(user) : next(createHttpError(404, `User with id ${req.payload._id} was not be found.`))
         } else {

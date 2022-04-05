@@ -15,7 +15,7 @@ taskRouter.post('/', JWTAuth, parser.single('audioFile'), async (req: Request, r
         if (req.body.musicians) musicianObjectIds = JSON.parse(req.body.musicians).map((musicianId: string) => new mongoose.Types.ObjectId(musicianId))
         const newTask = new TaskModel({
             ...req.body,
-            musicians: musicianObjectIds,
+            musicians: [...musicianObjectIds, req.payload?._id],
             audioFile: req.file?.path || '',
             filename: req.file?.filename || ''
         })
@@ -31,7 +31,7 @@ taskRouter.post('/', JWTAuth, parser.single('audioFile'), async (req: Request, r
 taskRouter.get('/', JWTAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const project = await ProjectModel.findById(req.params.projectId)
-            .populate({ path: 'tasks', populate: { path: 'notes', populate: { path: 'user', select: ['firstName', 'lastName', 'avatar'] } } })
+            .populate({ path: 'tasks', populate: [{ path: 'musicians', select: ['firstName', 'lastName', 'avatar'] }, { path: 'notes', populate: { path: 'sender', select: ['firstName', 'lastName', 'avatar'] } }] })
             .populate('members', ['firstName', 'lastName', 'avatar'])
         if (!project) return next(createHttpError(404, `Project with id ${req.params.projectId} cannot be found.`))
         res.send(project.tasks)
