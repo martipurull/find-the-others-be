@@ -1,5 +1,5 @@
 import express from 'express'
-import cors from 'cors'
+import cors, { CorsOptions } from 'cors'
 import cookieParser from 'cookie-parser'
 import passport from 'passport'
 import { errorHandlers } from './middleware/errorHandler'
@@ -12,8 +12,17 @@ import bandRouter from './services/band'
 import projectRouter from './services/project'
 
 const server = express()
-const whitelist = ['http://localhost:3000']
-const corsOptions = { origin: whitelist, credentials: true }
+const whitelist = ['http://localhost:3000', 'https://find-the-others-fe.vercel.app']
+const corsOptions: CorsOptions = {
+    origin: function (origin, callback) {
+        if (whitelist.indexOf(origin!) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    },
+    credentials: true
+}
 
 passport.use('facebook', facebookStrategy)
 passport.use('google', googleStrategy)
