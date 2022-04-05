@@ -13,9 +13,9 @@ import projectRouter from './services/project'
 
 const server = express()
 const whitelist = ['http://localhost:3000', 'https://find-the-others-fe.vercel.app']
-const corsOptions: CorsOptions = {
-    origin: function (origin, callback) {
-        if (whitelist.indexOf(origin!) !== -1) {
+const corsOptions = {
+    origin: function (origin: any, callback: any) {
+        if (whitelist.indexOf(origin) !== -1) {
             callback(null, true)
         } else {
             callback(new Error('Not allowed by CORS'))
